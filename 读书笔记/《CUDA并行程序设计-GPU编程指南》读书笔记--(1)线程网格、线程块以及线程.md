@@ -1,14 +1,14 @@
 # **线程网格、线程块以及线程**
 
 ## **SPMD模型**
-```
+```cpp
 __global__ void addKernel(int *c, const int *a, const int *b)
 {
     int i = threadIdx.x;
     c[i] = a[i] + b[i];
 }
 ```
-\__global__前缀是告诉编译器在编译这个函数的时候生成的是GPU代码而不是CPU代码，并且这段GPU代码在CPU上是全局可见的。
+__global__前缀是告诉编译器在编译这个函数的时候生成的是GPU代码而不是CPU代码，并且这段GPU代码在CPU上是全局可见的。
 
 我们可以将线程ID用作数组的下标对数组进行访问。线程0中threadIdx.x值为0，线程1的为1，依此类推，线程127中的threadIdx.x值为127。
 
@@ -37,15 +37,15 @@ CPU和GPU有各自独立的内存空间，因此在GPU代码中，不可以直�
 
 ----------
 ## **调用CUDA内核**
-```
+```cpp
 addKernel<<<num_blocks, num_threads>>>(param1, param2, ...);
 ```
 参数num_blocks表示线程块数量
 参数num_threads表示执行内核函数的每个线程块所启动的线程数量
-```
+```cpp
 addKernel<<<2, 64>>>(dev_c, dev_a, dev_b);
 ```
-```
+```cpp
 __global__ void addKernel(int *c, const int *a, const int *b)
 {
     int i =(blockIdx.x * blockDim.x) + threadIdx.x;
@@ -70,20 +70,20 @@ thread--线程；block--线程块；grid--线程网格；warp--线程束。
 
 ![这里写图片描述](《CUDA并行程序设计-GPU编程指南》读书笔记--(1)线程网格、线程块以及线程/5.png)
 
-```
+```cpp
 const unsigned int idx = (bloackIdx.x*bloackDim.x)+threadIdx.x;
 const unsigned int idy = (bloackIdx.y*bloackDim.y)+threadIdx.y;
 
 some_array[idy][idx] += 1.0;
 ```
 bloackDim.x与bloackDim.y分别表示x轴和Y轴这两个维度上线程块的数目。现在，我们来修改当前的程序，让它计算一个32×16维的数组。假设调度四个线程块，我们可以让这四个线程块像条纹布一样布局，然后让数组与线程块上的线程形成一一映射的关系，也可以像方块一样布局。
-```
+```cpp
 dim3 threads_rect(32,4);
 dim3 blocks_rect(1,4);
 some_kernel_func<<<blocks_rect,threads_rect>>>(a,b,c);
 ```
 或
-```
+```cpp
 dim3 threads_rect(16,8);
 dim3 blocks_rect(2,2);
 some_kernel_func<<<blocks_rect,threads_rect>>>(a,b,c);
@@ -109,7 +109,7 @@ dim3是CUDA中一个比较特殊的数据结构，我们可以用这个数据结
 一个线程束是一个单独的执行单元，使用分支(例如，使用if、else、for、while、do、swith等语句)可以产生不同的执行流。
 
 GPU在执行完分支结构的一个分支后会接着执行另一个分支。对不满足分支条件的线程，GPU在执行这块代码的时候会将它们设置成未激活状态。当这块代码执行完毕之后，GPU继续执行另一个分支，这时，刚刚不满足分支条件的线程如果满足当前的分支条件，那么它们将被激活，然后执行这一段代码。最后，所有的线程聚合，继续向下执行。
-```
+```cpp
 __global__ some_func(){
 	if(some_condition){
 		action_a();
@@ -118,10 +118,10 @@ __global__ some_func(){
 	}
 }
 ```
-代码中，假设索引为偶数的线程满足条件为真的情况，执行函数action\_a()，索引为奇数的线程满足条件为假的情况，执行函数action\_b()。由于硬件每次只能为一个线程束获取一条指令，线程束中一半的线程要执行条件为真的代码段，一半线程执行条件为假的代码段，因此，这时有一半的线程会被阻塞，而另一半线程会执行满足条件的那个分支。如此，硬件的利用率只达到了50％。
+代码中，假设索引为偶数的线程满足条件为真的情况，执行函数action_a()，索引为奇数的线程满足条件为假的情况，执行函数action_b()。由于硬件每次只能为一个线程束获取一条指令，线程束中一半的线程要执行条件为真的代码段，一半线程执行条件为假的代码段，因此，这时有一半的线程会被阻塞，而另一半线程会执行满足条件的那个分支。如此，硬件的利用率只达到了50％。
 
 **事实上，在指令执行层，硬件的调度是基于半个线程束，而不是整个线程束。这意味着，只要我们能将半个线程束中连续的16个线程划分到同一个分支中，那么硬件就能同时执行分支结构的两个不同条件的分支块，例如，示例程序中if-else的分支结构。这时硬件的利用率就可以达到100％。**
-```
+```cpp
 __global__ some_func(){
 	if((thread_idx % 32) < 16){
 		action_a();

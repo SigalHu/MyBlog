@@ -13,7 +13,7 @@ GET http://s.music.163.com/search/get/?type=1&s=彩虹&limit=1&offset=0
 其中的offset类似翻页功能，比如一页有十首歌曲，就令limit=10,offset=0，返回第一页，设置limit=10,offset=10来返回第二页。
 
 返回值如下：
-```
+```json
 {
     "result": {
         "songCount": 3919,
@@ -50,7 +50,7 @@ GET http://s.music.163.com/search/get/?type=1&s=彩虹&limit=1&offset=0
 在返回的json数据中，songCount表示以彩虹为关键词搜索到的歌曲总数，songs是返回的歌曲列表，其中，name表示歌曲名；artists与album分别包含歌手与唱片信息；audio与page分别为歌曲与歌曲页面的链接。既然返回结果没问题，接下来我们就用aiohttp搭建客户端来发送GET请求，并从返回值中提取歌曲名、歌手名、唱片图片与歌曲页面等信息。
 
 新建文件netease_music3.py，代码如下：
-```
+```py
 import asyncio
 from aiohttp import ClientSession
 
@@ -121,11 +121,11 @@ page:http://music.163.com/m/song/4873072
 关于asyncio模块的基本概念可参考[《使用python-aiohttp搭建微信公众平台》](http://blog.csdn.net/u011475134/article/details/70147484)，这里就不一一注释了。接下来，我们在微信公众平台上添加在线点歌功能。
 
 打开main3.py文件（见[《使用python-aiohttp搭建微信公众平台》](http://blog.csdn.net/u011475134/article/details/70147484)），导入文件：
-```
+```py
 import netease_music3
 ```
 在if语句中添加代码如下：
-```
+```py
     if MsgType.lower() == 'text':        # hu 文本消息
         reg = r'''<Content><!\[CDATA\[(.*?)\]\]></Content>
 <MsgId>(.*?)</MsgId>'''
@@ -168,5 +168,5 @@ import netease_music3
 运行以上代码就可以在公众号里输入关键词点歌啦~
 #### 源码下载：https://github.com/SigalHu/WeiXin/
 #### 参考链接
-https://aiohttp.readthedocs.io/en/stable/</br>
-http://blog.csdn.net/u014595019/article/details/52295642
+[aiohttp: Asynchronous HTTP Client/Server](https://aiohttp.readthedocs.io/en/stable/)</br>
+[异步爬虫: async/await 与 aiohttp的使用，以及例子](http://blog.csdn.net/u014595019/article/details/52295642)

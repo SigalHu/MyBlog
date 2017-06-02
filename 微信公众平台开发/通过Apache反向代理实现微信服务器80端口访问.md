@@ -44,5 +44,5 @@ ln -s /usr/local/apache/sites-available/web.conf /usr/local/apache/sites-enabled
 service httpd restart
 ```
 #### 参考链接
-[http://www.jianshu.com/p/b34c78bf9bf0](http://www.jianshu.com/p/b34c78bf9bf0)</br>
-[http://blog.csdn.net/zhouyingge1104/article/details/44459655](http://blog.csdn.net/zhouyingge1104/article/details/44459655)
+[CentOS 7 Apache 多端口部署 Web Apps 指南](http://www.jianshu.com/p/b34c78bf9bf0)</br>
+[Apache启动报错：Invalid command 'ProxyPass', perhaps misspelled or defined by a module not inclu ded in t](http://blog.csdn.net/zhouyingge1104/article/details/44459655)

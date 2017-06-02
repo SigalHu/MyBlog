@@ -16,7 +16,7 @@ CPU与GPU架构的一个主要区别就是CPU与GPU映射寄存器的方式。CP
 如果一个内核函数中的每个线程需要的寄存器过多，在每个SM中GPU能够调度的线程块的数量就会受到限制，因此总的可以执行的线程数量也会受到限制。
 
 ---
-```
+```cpp
 for(i=0;i<31;<i++){
 	packed_result |= (pack_array[i]<<i);
 }
@@ -24,7 +24,7 @@ for(i=0;i<31;<i++){
 如果变量packed\_result存于内存中，则需要做32次读/写内存的操作。但如果将变量packed\_result设置为局部变量，编译器会将其放入寄存器中，在寄存器中而不是在主内存中做操作，最后再将结果写回主内存中，因此可节省31次内存读/写的操作。
 
 寄存器版本：
-```
+```cpp
 __global__ void test_gpu_register(u32 * const data, const u32 num_elements){
 	const u32 tid = (blockIdx.x * blockDim.x) + threadIdx.x;
 	if(tid < num_elements){
@@ -37,7 +37,7 @@ __global__ void test_gpu_register(u32 * const data, const u32 num_elements){
 }
 ```
 全局内存版本：
-```
+```cpp
 __devicd__ static u32 d_tmp[NUM_ELEM];
 __global__ void test_gpu_register(u32 * const data, const u32 num_elements){
 	const u32 tid = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -53,7 +53,7 @@ __global__ void test_gpu_register(u32 * const data, const u32 num_elements){
 
 GPU执行的是一种内存的加载/存储模型(load-store model)，即所有的操作都要  在指令载入寄存器之后才能执行。因此，加载数据到共享内存与加载数据到寄存器中不同，只有当数据重复利用、全局内存合并，或线程之间有共享数据时使用共享内存才更合适。
 
-```
+```cpp
 __device__ void merge_array(){
 	__shared__ u32 list_indexes[MAX_NUM_LISTS];
 	// do something
@@ -65,7 +65,7 @@ __device__ void merge_array(){
 常量内存其实只是全局内存的一种虚拟地址形式，并没有特殊保留的常量内存块。常量内存有两个特性，一个是高速缓存，另一个是它支持将单个值广播到线程束中的每个线程。
 
 **常量内存是只读内存。**这种类型的内存要么是在编译时声明为只读内存，要么是在运行时通过主机端定义为只读内存。常量只是从GPU内存的角度而言。**常量内存的大小被限制为64K。**
-```
+```cpp
 __constant__ float my_array[1024] = {0.0F,1.0F,2.0F,...};
 ```
 **如果要在运行时改变常量内存区中的内容，只需在调用GPU内核之前简单地调用cudaCopyToSymbol函数。**
@@ -95,7 +95,7 @@ CPU主机端处理器可以通过以下三种方式对GPU上的内存进行访�
 
 ---
 将标准的cudaMalloc替换成cudaMallocPitch，使用这种特殊的分配内存指令可以得到对齐的内存块。
-```
+```cpp
 extern __host__ cudaError_t CUDARTAPI cudaMallocPitch(void **devPtr, 		    size_t *pitch, size_t width, size_t heigth);
 ```
 cudaMallocPitch的第一个参数表示指向设备内存指针的指针，第二个参数表示指向对齐之后每行真实字节数的指针，第三个参数为需要开辟的数组的宽度，单位为字节，最后一个参数为数组的高度。
@@ -104,7 +104,7 @@ cudaMallocPitch的第一个参数表示指向设备内存指针的指针，第�
 
 ---
 对齐的访问将导致多次内存获取。当等待内存获取时，线程束中的所有线程将阻塞直到所有的内存获取都从硬件中返回。因此，为了获得最好的吞吐量，我们需通过对齐并且连续合并的访问方式，将大量的内存获取请求合并，达到减少内存获取次数的效果。
-```
+```cpp
 typedef struct
 {
     int a;

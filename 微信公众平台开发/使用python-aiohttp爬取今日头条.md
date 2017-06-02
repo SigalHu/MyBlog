@@ -10,7 +10,7 @@ url：[http://www.toutiao.com/ch/news_hot/](http://www.toutiao.com/ch/news_hot/)
 ![这里写图片描述](使用python-aiohttp爬取今日头条/2.png)
 
 在Fiddler中找到与上面新闻对应的json数据与url，由于json数据太多，这里只给出部分。
-```
+```json
 {
     "has_more": false,
     "message": "success",
@@ -60,7 +60,7 @@ http://www.toutiao.com/api/pc/feed/?category=news_hot&utm_source=toutiao&widen=1
 通过多次观察发现，max_behot_time类似偏移量，点击热点时，取值为零，下拉网页时，取值为上一个josn数据中的next[max_behot_time]，由于点击热点就可以刷新新闻，所以让max_behot_time等于固定值0就好。
 
 as和cp每次都会改变，但没有找到规律，推测应该是每次请求时，按照一定规律生成的数据，于是查看网页源码，很明显，下面这段代码就是用来产生as和cp的，从代码中可以看到，as和cp相当于一个时间戳，我们可以仿照这段代码用python来生成as和cp。
-```
+```js
 e.getHoney = function() {
     var t = Math.floor((new Date).getTime() / 1e3),
     e = t.toString(16).toUpperCase(),
@@ -81,7 +81,7 @@ e.getHoney = function() {
 
 新建文件toutiao3.py并添加代码如下：
 
-```
+```py
 import asyncio
 from aiohttp import ClientSession
 import time
@@ -197,7 +197,7 @@ if __name__ == '__main__':
 结果每次获取的新闻都是一样的，通过Fiddler多次观察，发现新闻的刷新和Cookie中的tt_webid有关，当该参数不存在时，则返回默认新闻与tt_webid，所以我们只要取出响应中的tt_webid，并在发送请求时给tt_webid赋值就好。
 
 **将toutiao3.py文件做如下修改：**
-```
+```py
 #### hu 增加代码 ######
 __cookie = None
 ######################

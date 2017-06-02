@@ -19,7 +19,7 @@ asyncio是python的一个异步协程框架，要使用asyncio需要先了解几
 **task:** task负责协程函数在event loop中的执行，在当前task挂起时，event loop会执行其他task，在event loop中，同一时刻只能执行一个task
 
 下面举例说明：
-```
+```py
 import time
 import asyncio
 # hu 定义协程函数
@@ -68,7 +68,7 @@ time:  1.0000569820404053 s
 关于搭建微信公众平台的准备工作，网上的资料很多，这里就不作介绍了，只提一点，就是微信公众平台接口调用仅支持80端口，可以参考我的上一篇博文[《通过Apache反向代理实现微信服务器80端口访问》](http://blog.csdn.net/u011475134/article/details/69951987)。
 
 新建main3.py文件，代码如下：
-```
+```py
 import asyncio
 from aiohttp import web
 import re
@@ -127,10 +127,10 @@ if __name__ == '__main__':
 
 #### 源码下载：https://github.com/SigalHu/WeiXin/
 #### 参考链接
-https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html</br>
-https://aiohttp.readthedocs.io/en/stable/</br>
-https://docs.python.org/3.4/library/asyncio-task.html</br>
-http://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000/001432090171191d05dae6e129940518d1d6cf6eeaaa969000</br>
-http://python.jobbole.com/87310/</br>
-http://blog.csdn.net/u014595019/article/details/52295642</br>
-https://mp.weixin.qq.com/wiki
+[Making 1 million requests with python-aiohttp](https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html)</br>
+[aiohttp: Asynchronous HTTP Client/Server](https://aiohttp.readthedocs.io/en/stable/)</br>
+[asyncio – Asynchronous I/O, event loop, coroutines and tasks](https://docs.python.org/3.4/library/asyncio-task.html)</br>
+[协程-廖雪峰的官方网站](http://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000/001432090171191d05dae6e129940518d1d6cf6eeaaa969000)</br>
+[Python黑魔法 --- 异步IO（ asyncio） 协程](http://python.jobbole.com/87310/)</br>
+[异步爬虫: async/await 与 aiohttp的使用，以及例子](http://blog.csdn.net/u014595019/article/details/52295642)</br>
+[微信公众平台技术文档](https://mp.weixin.qq.com/wiki)
