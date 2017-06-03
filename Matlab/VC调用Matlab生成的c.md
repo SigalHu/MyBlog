@@ -54,15 +54,15 @@ end
 
 **第7步：** 点击Build，进行编译；点击View report，弹出Code Generation Report对话框，此时，变量interweava_in、mode、interweava_out、interweava_zeros会显示相应的变量信息；
 
-![](VC调用Matlab生成的c\1.png) ![](VC调用Matlab生成的c\2.png)
+![](VC调用Matlab生成的c/1.png) ![](VC调用Matlab生成的c/2.png)
 
 **第8步：** 打开VS2010，新建Win32 Console Application工程，并选择Empty project；
 
-![](VC调用Matlab生成的c\3.png) ![](VC调用Matlab生成的c\4.png)
+![](VC调用Matlab生成的c/3.png) ![](VC调用Matlab生成的c/4.png)
 
 **第9步：** 将Matlab生成的codegen\\lib\\deinterweaving\\下所有.c和.h文件复制到新建工程目录，并添加到工程；
 
-![](VC调用Matlab生成的c\5.png)
+![](VC调用Matlab生成的c/5.png)
 
 **第10步：** 新建一个cpp文件，代码为
 ```cpp
