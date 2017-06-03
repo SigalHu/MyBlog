@@ -20,6 +20,7 @@
 * Matlab
     * [VC调用Matlab生成的dll](Matlab/VC调用Matlab生成的dll.md)
     * [VC调用Matlab生成的c](Matlab/VC调用Matlab生成的c.md)
+    * [Matlab生成exe文件](Matlab/Matlab生成exe文件.md)
 
 * DSP
     * [CCSv4新建C6455工程](DSP/CCSv4新建C6455工程.md)
