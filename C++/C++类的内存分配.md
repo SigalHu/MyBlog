@@ -525,6 +525,47 @@ int main() {
 ```
 A::fun
 ```
+更进一步，在实现类的多态的过程中，子类的虚函数覆盖了父类在虚函数表上的相应虚函数，此时函数指针已经改变，但子类依旧能找到覆盖后的虚函数。也就是说，虚函数在调用时只是调用虚函数表中相应位置的虚函数，并不会判断此处的虚函数是否已发生变化。利用这一点，我们可以做一些有趣的事。
+```cpp
+#include <iostream>
+using namespace std;
+
+class A{
+public:
+    int a;
+    A(int a,int b):a(a),b(b){}
+private:
+    int b;
+    virtual void funA1(){
+        cout<<"funA1"<<endl;
+    }
+    virtual void funA2(){
+        cout<<"funA2"<<endl;
+    }
+};
+
+class B{
+public:
+    virtual void funB1(){
+        cout<<"funB1"<<endl;
+    }
+    virtual void funB2(){
+        cout<<"funB2"<<endl;
+    }
+};
+
+int main() {
+    A a(0xa,0xb);
+    ((B *)&a)->funB1();
+    ((B *)&a)->funB2();
+    return 0;
+}
+```
+测试结果：
+```
+funA1
+funA2
+```
 
 ### 虚基类
 

@@ -123,9 +123,9 @@ true
 true
 ```
 
-### 调用C函数时非POD数据类型与POD数据类型的转换
+### 非POD数据类型与POD数据类型的转换
 
-我们知道POD数据类型是为了解决C\+\+与C之间数据类型的兼容性，但并不是说非POD数据类型在C\+\+与C之间就不兼容。在调用C函数时，我们所传的实参也可以是非POD的，例如在如下代码中，我们可以将指向类A实例的指针转换为B类型并取值来实现非POD到POD类型的赋值，换句话说，我们完全可以以类B的内存布局去读取类A实例在栈中的内存空间。
+我们知道POD数据类型是为了解决C\+\+与C之间数据类型的兼容性，但并不是说非POD数据类型在C\+\+与C之间就不兼容。在调用C函数时，我们所传的实参也可以是非POD的，例如在如下代码中，我们可以将指向类A实例的指针转换为B类型并取值来实现非POD到POD类型的赋值，换句话说，我们完全可以以类B的内存分配方式去读取类A实例在栈中的内存空间。
 ```cpp
 #include <iostream>
 using namespace std;
@@ -147,13 +147,13 @@ public:
 int main() {
     A a(0xa1,0xa2);
     B b = *(B *)&a;
-    cout << boolalpha << is_pod<A>::value << endl;
-    cout << boolalpha << is_pod<B>::value << endl;
-    cout << hex << a.getA1() << dec << endl;
-    cout << hex << b.b << dec << endl;
-    cout << hex << a.a2 << dec << endl;
+    cout<<boolalpha<<is_pod<A>::value<<endl;
+    cout<<boolalpha<<is_pod<B>::value<<endl;
+    cout<<hex<<a.getA1()<<" "<<b.b<<dec<<endl;
     b = *((B *)&a+1);
-    cout << hex << b.b << dec << endl;
+    cout<<hex<<a.a2<<" "<<b.b<<dec<<endl;
+    a = *(A *)&b;
+    cout<<hex<<a.getA1()<<" "<<b.b<<dec<<endl;
     return 0;
 }
 ```
@@ -163,67 +163,133 @@ false
 true
 a1 a1
 a2 a2
+a2 a2
 ```
+从测试结果可以看到，这种方式会破坏类的封装特性，而且当类A与B的内存布局不相同时，也不会报错，说白了就是将该指针所指向的栈中的数据以某种数据类型的方式取值。当然，我们也可以通过合理地重载类A的赋值运算符来实现相应的需求。
 
-
-
-很多博文都提到可以使用memcpy()和memset()对POD数据类型进行相关操作，但并不是说非POD数据类型就不可以了。
-
-**同一进程中**
-
-
-
-**不同进程间**
-
+当类中包含虚函数时，情况又会有些不同。我们知道，当类中包含虚函数时，在该类实例的所占内存的起始位置会存放一个指向该类虚函数表的指针，例如在以下代码中，我们将指向实例a的指针转换为B1的指针并取值，得到的b1.a是a中指向类A虚函数表的指针，我们也通过存放在虚函数表中的函数指针加以验证，b1.b的值等于a.a，这些都是符合类的内存分配方式的。
 ```cpp
 #include <iostream>
-#include "test1.h"
 #include <string.h>
 using namespace std;
 
 class A{
 public:
-    A(int a,int b){this->a=a;this->b=b;}
-    A(int a){this->a=a;}
     int a;
-    int getB(){return b;}
-    void setB(int b){this->b=b;}
-    virtual void fun(){
-        cout<<"classA"<<endl;
-    }
+    A(int a,int b):a(a),b(b){}
 private:
+    int b;
+    virtual void funA1(){
+        cout<<"funA1"<<endl;
+    }
+    virtual void funA2(){
+        cout<<"funA2"<<endl;
+    }
+};
+
+class B1{
+public:
+    int a;
     int b;
 };
 
-class B{
+class B2{
 public:
-    B(int a,int b){this->a=a;this->b=b;}
     int a;
-    int getB(){return b;}
-    void setB(int b){this->b=b;}
     int b;
-    virtual void fun(){
-        cout<<"classB"<<endl;
+    virtual void funB1(){
+        cout<<"funB1"<<endl;
+    }
+    virtual void funB2(){
+        cout<<"funB2"<<endl;
     }
 };
 
 int main() {
-    cout<<is_pod<A>::value<<endl;
-    cout<<is_pod<B>::value<<endl;
-    A a(0xa,0xb);
-    cout<<sizeof(a)<<endl;
-    char *b = new char[sizeof(a)];
-    memcpy(b,&a,sizeof(a));
-//    a.fun();
-    ((B *)b)->fun();
-    cout<<a.a<<endl;
-    cout<<((B *)b)->a<<endl;
-    cout<<a.getB()<<endl;
-    cout<<((B *)b)->b<<endl;
-    delete b;
+    cout<<boolalpha<<is_pod<A>::value<<endl;
+    cout<<boolalpha<<is_pod<B1>::value<<endl;
+    cout<<boolalpha<<is_pod<B2>::value<<endl<<endl;
+
+    A a(0xa,0xb);B1 b1;B2 b2;
+    b1 = *(B1 *)&a;
+    cout<<hex<<b1.a<<" "<<b1.b<<dec<<endl;
+    typedef void (*Fun)();
+    ((Fun)*(unsigned int *)b1.a)();
+    ((Fun)*((unsigned int *)b1.a+1))();
+    b1 = *(B1 *)((unsigned int*)&a+1);
+    cout<<hex<<b1.a<<" "<<b1.b<<dec<<endl<<endl;
+
+    b2 = *(B2 *)&a;
+    cout<<hex<<b2.a<<" "<<b2.b<<dec<<endl;
+    ((Fun)*(unsigned int *)*(unsigned int *)&b2)();
+    b2.funB2();
+    B2 *pb2=&b2;
+    pb2->funB2();
+    cout<<endl;
+
+    memcpy(&b2,&a,sizeof(b2));
+    cout<<hex<<b2.a<<" "<<b2.b<<dec<<endl;
+    ((Fun)*(unsigned int *)*(unsigned int *)&b2)();
+    b2.funB2();
+    pb2=&b2;
+    pb2->funB2();
     return 0;
 }
 ```
+测试结果：
+```
+false
+true
+false
+
+406170 a
+funA1
+funA2
+a b
+
+a b
+funB1
+funB2
+funB2
+
+a b
+funA1
+funB2
+funA2
+```
+在上面的代码中，将实例a赋值给b2调用了类B2的默认赋值运算符函数，故b2中指向虚函数表中的指针不变，成员变量被赋值。而使用memcpy()则将类B2大小的数据整个复制到b2的内存空间，此时b2中的指向类B2的虚函数表指针被替换成指向类A的虚函数表指针。此时，通过实例b2仍然可以正确的调用虚函数B2::funB2()，而通过类B2的指针却调用的是A::funA2()。通过gdb查看这部分的汇编代码，使用实例b2调用虚函数时，直接通过函数指针调用函数，并没有通过虚函数表；而使用指针调用虚函数时，则是在调用时从虚函数表的确定位置处获取函数指针。
+```cpp
+(gdb) disassemble /m main
+Dump of assembler code for function main():
+37	int main() {
+...
+62	    b2.funB2();
+   0x00401540 <+224>:	lea    -0x3c(%ebp),%eax
+   0x00401543 <+227>:	mov    %eax,%ecx
+   0x00401545 <+229>:	call   0x403d50 <B2::funB2()>
+
+63	    pb2=&b2;
+   0x0040154a <+234>:	lea    -0x3c(%ebp),%eax
+   0x0040154d <+237>:	mov    %eax,-0x1c(%ebp)
+
+64	    pb2->funB2();
+   0x00401550 <+240>:	mov    -0x1c(%ebp),%eax
+   0x00401553 <+243>:	mov    (%eax),%eax
+   0x00401555 <+245>:	add    $0x4,%eax
+   0x00401558 <+248>:	mov    (%eax),%eax
+   0x0040155a <+250>:	mov    -0x1c(%ebp),%edx
+   0x0040155d <+253>:	mov    %edx,%ecx
+   0x0040155f <+255>:	call   *%eax
+...
+End of assembler dump.
+```
+
+### 总结
+
+1. 使用memcpy()通过类实例指针操作的是类实例在栈中的数据，所以只要搞清楚类的内存分配，我们总是可以获取自己想要的数据。
+2. 当类中包含指针时，对其进行赋值或者memcpy()操作需注意内存的释放与野指针的产生
+3. 当类中包含虚函数或虚继承时，类实例的内存空间中会包含指向虚函数表的指针
+4. 相同的指针（虚拟地址）被不同的进程映射到的物理地址是不同的，也就是说，在不同进程间传递指针是没有意义的
 
 **参考链接**
 
