@@ -59,6 +59,50 @@ C:8
 测试代码：
 ```cpp
 #include <iostream>
+#include <string.h>
+using namespace std;
+
+class A1{};
+class A2{};
+
+class B1:public A1{
+public:
+    A1 a1;
+    char ca;
+};
+
+class B2:public A1{
+public:
+    A2 a2;
+    char ca;
+};
+
+class B3:public A1{
+public:
+    char ca;
+    A1 a1;
+};
+
+int main() {
+    cout<<sizeof(B1)<<endl;
+    cout<<sizeof(B2)<<endl;
+    cout<<sizeof(B3)<<endl;
+    return 0;
+}
+```
+测试结果：
+```
+3
+2
+2
+```
+如果基类没有成员，标准允许派生类的第一个成员与基类共享地址，基类并没有占据任何实际的空间，但此时若该派生类的第一个成员类型仍然是基类，编译器仍会为基类分配1字节的空间，这是因为C\+\+标准要求类型相同的对象必须地址不同。
+
+**测试三**
+
+测试代码：
+```cpp
+#include <iostream>
 using namespace std;
 
 class A {
