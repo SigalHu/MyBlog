@@ -59,7 +59,6 @@ C:8
 测试代码：
 ```cpp
 #include <iostream>
-#include <string.h>
 using namespace std;
 
 class A1{};
