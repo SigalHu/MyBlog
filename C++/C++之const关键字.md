@@ -111,7 +111,7 @@ public:
 
 ### const常量与#define的区别
 
-* 编译器处理方式不同。#define宏是在预编译阶段展开（字符替换）；内置整型数据类型const常量是编译运行阶段使用（常量折叠）
+* 编译器处理方式不同。#define宏是在预编译阶段展开（字符替换）；内置数据类型const常量是编译运行阶段使用（常量折叠）
 * 类型和安全检查不同。#define宏没有类型，不做任何类型检查，仅仅是进行字符替换；const常量有具体的类型，在编译阶段会执行类型检查
 * 存储方式不同。#define宏仅仅是展开，有多少地方使用，就展开多少次，不会分配内存；const常量会在内存中分配（栈区或者全局数据区）
 * 另外，定义的const常量只在作用域内有效，而#define宏则是在定义范围内有效，例如可以将类的成员变量定义为const常量，此外，const常量可以是数组、类以及结构体等复杂数据类型，这些都是#define宏无法做到的。
@@ -225,7 +225,53 @@ End of assembler dump.
 
 ### const的进一步探究
 
-编译器会对内置整型数据类型const常量进行常量替换，但对于浮点数、数组、结构体以及类等复杂数据类型，由于编译器不知道如何直接替换，因此必须要访问内存去获取数据。在下面的代码中，我们通过指针操作改变const常量的值，其中，常量a的引用在编译过程中就已经被编译器替换成立即数1并存于代码区，而常量数组b则没有被编译器进行优化，每次都需要从内存中读取数据，所以当我们通过指针改变了b[0]的值，常量数组的值也发生了改变。在这里，const属性的修改可以通过const_cast运算符与传统转换方式实现。
+结合代码与汇编指令，浮点型const常量Pi初始化时，编译器并没有将3.14以立即数的形式保存在代码区，而是将其存放在常量区，而且Pi、a与c都是在同一地址获取数据，这与字符串指针的初始化很像。正因为如此，每次访问Pi都需要从内存中读取数据，所以当我们可以通过指针改变Pi的值。在这里，const属性的修改可以通过const_cast运算符与传统转换方式实现。
+```cpp
+#include <iostream>
+using namespace std;
+#define PI 3.14
+
+int main() {
+    const float Pi = 3.14;
+    float a = PI;
+    float b = Pi;
+    float c = 3.14;
+    float *pb = const_cast<float *>(&b);
+    cout<<b<<" "<<*pb<<endl;
+    (*pb)++;
+    cout<<b<<" "<<*pb<<endl;
+    return 0;
+}
+```
+运行结果：
+```
+3.14 3.14
+4.14 4.14
+```
+部分汇编代码：
+```cpp
+(gdb) disassemble /m main
+Dump of assembler code for function main():
+···
+6	    const float Pi = 3.14;
+=> 0x00401476 <+22>:	flds   0x405068
+   0x0040147c <+28>:	fstps  -0xc(%ebp)
+
+7	    float a = PI;
+   0x0040147f <+31>:	flds   0x405068
+   0x00401485 <+37>:	fstps  -0x10(%ebp)
+
+8	    float b = Pi;
+   0x00401488 <+40>:	flds   -0xc(%ebp)
+   0x0040148b <+43>:	fstps  -0x1c(%ebp)
+
+9	    float c = 3.14;
+   0x0040148e <+46>:	flds   0x405068
+   0x00401494 <+52>:	fstps  -0x14(%ebp)
+···
+End of assembler dump.
+```
+编译器会对内置整型数据类型const常量进行常量替换，但对于数组、结构体以及类等复杂数据类型，由于编译器不知道如何直接替换，因此必须要访问内存去获取数据。在下面的代码中，我们通过指针操作改变const常量的值，其中，常量a的引用在编译过程中就已经被编译器替换成立即数1并存于代码区，而常量数组b则没有被编译器进行优化，每次都需要从内存中读取数据，所以当我们通过指针改变了b[0]的值，常量数组的值也发生了改变。
 ```cpp
 #include <iostream>
 using namespace std;
@@ -233,60 +279,52 @@ using namespace std;
 int main() {
     const int a = 1;
     const int b[] = {2};
-    const float c = 1.2;
     int *pa = (int *)&a;
     int *pb = const_cast<int *>(b);
-    float *pc = (float *)&c;
-    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<"|"<<c<<" "<<*pc<<endl;
-    (*pa)++;(*pb)++;*pc = 3.4;
-    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<"|"<<c<<" "<<*pc<<endl;
+    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<endl;
+    (*pa)++;(*pb)++;
+    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<endl;
     return 0;
 }
 ```
 运行结果：
 ```
-1 1|2 2|1.2 1.2
-1 2|3 3|3.4 3.4
+1 1|2 2
+1 2|3 3
 ```
-
-
-
-
-原因在于对const 类型,编译器有3种不同的处理.
-1. 对于直接已知值的int,long,short,char 类型以及其unsigned版本,即 const int a=2; 这种,编译器编译程序之后,程序中所有a出现的地方,全部自动替换成2. 所以,就出现了对于 *b=3 ,在 const int a=2 ;中不会修改a,而在 const int a=c; 中则会修改 a的情况.
-2. 对于字符串. 类似 const char *a="abc"; 这种,同样是不能修改的,不过原因就不再是上面那个,而是因为这个 "abc" 在编译之后是放在程序的"常量段",这部分是执行文件的一部分,运行期间不可修改,如果强制修改,就会出现 内存读写错误:0x000005不可写 这种错误.
-3. 就是文章提到的这种情况,会 *b=3 会修改const的限制,原因也如文章中所说一致,这个限制只是编译期间限制,运行期间不受影响.对于上面没有提到的类型(包括float,double,以及自定义类型),都会作这种处理.
+在下面的代码中，字符串指针c与d的初始化字符串保存在常量区，数据不可进行修改，如果强制修改，就会出现内存读写错误，与const无关。
 ```cpp
 #include <iostream>
 using namespace std;
 
 int main() {
     const char a = '1';
-    cout<<a<<endl;
+    const char b[] = "2";
+    const char *c = "3";
+    char *d = "4";
     char *pa = (char *)&a;
-    cout<<*pa<<endl;
-    (*pa)++;
-    cout<<*pa<<endl;
-    return 0;
-}
-```
-```cpp
-#include <iostream>
-using namespace std;
+    char *pb = (char *)b;
+    char *pc = (char *)c;
+    char *pd = (char *)d;
 
-int main() {
-    const char a[] = "123";
-//    const char *a = "123";
-//    char *a = "123";
-    cout<<a<<endl;
-    char *pa = (char *)a;
-    cout<<*pa<<endl;
+    cout<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
     (*pa)++;
-    cout<<*pa<<endl;
-    cout<<a<<endl;
+    (*pb)++;
+//    (*pc)++;  // 报错
+//    (*pd)++;  // 报错
+    cout<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
     return 0;
 }
 ```
+运行结果：
+```
+1 2 3 4
+1 3 3 4
+```
+
+
+
+
 ```cpp
 #include <iostream>
 using namespace std;
