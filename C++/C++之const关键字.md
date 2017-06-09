@@ -227,27 +227,60 @@ End of assembler dump.
 
 **volatile关键字**
 
+volatile关键字是一种类型修饰符，用它声明的类型变量表示可能被某些编译器未知的因素更改，比如操作系统、硬件或者其它线程等。遇到这个关键字声明的变量，编译器对访问该变量的代码就不再进行优化，从而可以提供对特殊地址的稳定访问。
+
+当要求使用volatile声明的变量的值的时候，系统总是重新从它所在的内存读取数据，即使它前面的指令刚刚从该处读取过数据。
+
+在下面代码中，const常量b通过volatile声明后，编译器不会对其进行常量替换，每次访问b，都从它所在的内存读取，所以通过指针改变b所在内存的数据，const常量b也会发生改变。
 ```cpp
 #include <iostream>
 using namespace std;
 
 int main() {
-    volatile const int c = 3;
-    int b = 2;
-    int a = 1;
-    int *pc = (int *)&c;
-    cout<<hex<<"&a="<<&a<<dec<<"   a="<<a<<endl;
-    cout<<hex<<"&b="<<&b<<dec<<"   b="<<b<<endl;
-    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
-    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
-    *pc = 0xc;
-    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
-    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
+    const int a = 1;
+    volatile const int b = 2;
+    int *pa = (int *)&a;
+    int *pb = (int *)&b;
+    cout<<a<<" "<<*pa<<"|"<<b<<" "<<*pb<<endl;
+    (*pa)++;(*pb)++;
+    cout<<a<<" "<<*pa<<"|"<<b<<" "<<*pb<<endl;
     return 0;
 }
 ```
+运行结果：
+```
+1 1|2 2
+1 2|3 3
+```
 
 **mutable关键字**
+
+在C++中，mutable关键字也是为了突破const的限制而设置的。被mutable修饰的变量（**mutable只能由于修饰类的非静态数据成员**），将永远处于可变的状态，即使在一个const函数中或者类的实例为const常量。
+```cpp
+#include <iostream>
+using namespace std;
+
+class A{
+public:
+    int a;
+    mutable int b;
+    void set(int a,int b)const{
+//        this->a = a;  // 报错
+        this->b = b;
+    }
+};
+
+int main() {
+    const A a={1,2};
+    cout<<a.a <<" "<<a.b<<endl;
+//    a.a = 2;  // 报错
+    a.b = 3;
+    cout<<a.a <<" "<<a.b<<endl;
+    a.set(4,4);
+    cout<<a.a <<" "<<a.b<<endl;
+    return 0;
+}
+```
 
 **constexpr关键字**
 
@@ -459,3 +492,5 @@ void setC(int a) const
 [C++中的const完全解析](http://www.cnblogs.com/findumars/p/3697079.html)</br>
 [C++常量折叠](http://blog.csdn.net/yby4769250/article/details/7359278)</br>
 [C++中const的实现机制深入分析](http://blog.csdn.net/zyw_ym_zone/article/details/10211201)</br>
+[C++中const、volatile、mutable、explicit的用法](http://blog.csdn.net/wangtaoking1/article/details/48058415)</br>
+[C/C++要点全掌握（五）——mutable、volatile](http://blog.csdn.net/tht2009/article/details/6920511)
