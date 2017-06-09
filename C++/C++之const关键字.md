@@ -223,6 +223,34 @@ Dump of assembler code for function main():
 End of assembler dump.
 ```
 
+### 跟const有关的关键字
+
+**volatile关键字**
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    volatile const int c = 3;
+    int b = 2;
+    int a = 1;
+    int *pc = (int *)&c;
+    cout<<hex<<"&a="<<&a<<dec<<"   a="<<a<<endl;
+    cout<<hex<<"&b="<<&b<<dec<<"   b="<<b<<endl;
+    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
+    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
+    *pc = 0xc;
+    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
+    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
+    return 0;
+}
+```
+
+**mutable关键字**
+
+**constexpr关键字**
+
 ### const的进一步探究
 
 结合代码与汇编指令，浮点型const常量Pi初始化时，编译器并没有将3.14以立即数的形式保存在代码区，而是将其存放在常量区，而且Pi、a与c都是在同一地址获取数据，这与字符串指针的初始化很像。正因为如此，每次访问Pi都需要从内存中读取数据，所以当我们可以通过指针改变Pi的值。在这里，const属性的修改可以通过const_cast运算符与传统转换方式实现。
@@ -271,7 +299,7 @@ Dump of assembler code for function main():
 ···
 End of assembler dump.
 ```
-编译器会对内置整型数据类型const常量进行常量替换，但对于数组、结构体以及类等复杂数据类型，由于编译器不知道如何直接替换，因此必须要访问内存去获取数据。在下面的代码中，我们通过指针操作改变const常量的值，其中，常量a的引用在编译过程中就已经被编译器替换成立即数1并存于代码区，而常量数组b则没有被编译器进行优化，每次都需要从内存中读取数据，所以当我们通过指针改变了b[0]的值，常量数组的值也发生了改变。
+编译器会对内置整型数据类型const常量进行常量替换，但对于数组、结构体以及类等复杂数据类型，由于编译器不知道如何直接替换，因此必须要访问内存去获取数据。在下面的代码中，我们通过指针操作改变const常量的值，其中，常量a的引用在编译过程中就已经被编译器替换成立即数1并存于代码区，而常量数组b则没有被编译器进行优化，每次都需要从内存中读取数据，所以当我们通过指针改变了b[0]的值，常量数组的值也发生了改变。另外，我们也注意到，当const常量的初始化值为变量时，编译器也不会对其进行常量替换。
 ```cpp
 #include <iostream>
 using namespace std;
@@ -279,18 +307,21 @@ using namespace std;
 int main() {
     const int a = 1;
     const int b[] = {2};
+    int c = 3;
+    const int d = c;
     int *pa = (int *)&a;
     int *pb = const_cast<int *>(b);
-    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<endl;
-    (*pa)++;(*pb)++;
-    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<endl;
+    int *pd = (int *)&d;
+    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<"|"<<d<<" "<<*pd<<endl;
+    (*pa)++;(*pb)++;(*pd)++;
+    cout<<a<<" "<<*pa<<"|"<<b[0]<<" "<<*pb<<"|"<<d<<" "<<*pd<<endl;
     return 0;
 }
 ```
 运行结果：
 ```
-1 1|2 2
-1 2|3 3
+1 1|2 2|3 3
+1 2|3 3|4 4
 ```
 在下面的代码中，字符串指针c与d的初始化字符串保存在常量区，数据不可进行修改，如果强制修改，就会出现内存读写错误，与const无关。
 ```cpp
@@ -310,8 +341,8 @@ int main() {
     cout<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
     (*pa)++;
     (*pb)++;
-//    (*pc)++;  // 报错
-//    (*pd)++;  // 报错
+//    (*pc)++;  // 运行错误
+//    (*pd)++;  // 运行错误
     cout<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
     return 0;
 }
@@ -321,10 +352,7 @@ int main() {
 1 2 3 4
 1 3 3 4
 ```
-
-
-
-
+在下面的代码与汇编中，类A的常量数据成员a在实例定义时初始化，而静态常量数据成员b保存在全局数据区，为所有类A实例所共享，在编译时由编译器进行常量替换，而且，通过类实例访问的b也同样被优化。
 ```cpp
 #include <iostream>
 using namespace std;
@@ -332,16 +360,50 @@ using namespace std;
 class A{
 public:
     const int a = 1;
-    static const int b= 2;
+    static const int b = 2;
 };
 
 int main() {
     A a;
     int b = a.a;
-    int c = a.b;
+    int c = A::b;
+    int d = a.b;
     return 0;
 }
 ```
+汇编代码：
+```cpp
+(gdb) disassemble /m main
+Dump of assembler code for function main():
+10	int main() {
+   0x00401460 <+0>:	push   %ebp
+   0x00401461 <+1>:	mov    %esp,%ebp
+   0x00401463 <+3>:	and    $0xfffffff0,%esp
+   0x00401466 <+6>:	sub    $0x10,%esp
+   0x00401469 <+9>:	call   0x401a10 <__main>
+
+11	    A a;
+=> 0x0040146e <+14>:	movl   $0x1,(%esp)
+
+12	    int b = a.a;
+   0x00401475 <+21>:	mov    (%esp),%eax
+   0x00401478 <+24>:	mov    %eax,0xc(%esp)
+
+13	    int c = A::b;
+   0x0040147c <+28>:	movl   $0x2,0x8(%esp)
+
+14	    int d = a.b;
+   0x00401484 <+36>:	movl   $0x2,0x4(%esp)
+
+15	    return 0;
+   0x0040148c <+44>:	mov    $0x0,%eax
+
+16	}   0x00401491 <+49>:	leave
+   0x00401492 <+50>:	ret
+
+End of assembler dump.
+```
+当类成员函数的形参为引用类型时，可以通过对该形参添加const限定重载成员函数，否则在编译时会报重定义错误。对于setA()的调用，我们可以假设对应实参为const常量，此时若不通过指针操作且该函数未被重载，编译时就会报错。而对于setB()的调用，不管形参有没有加const限定，都是将实参的数据复制到形参对其进行初始化，编译器无法区分这两个函数。此外，也可以通过对成员函数加const限定来重载成员函数，此时，若该类的实例的const常量，则只能调用加const限定的成员函数。
 ```cpp
 #include <iostream>
 using namespace std;
@@ -350,80 +412,46 @@ class A{
 public:
     int a;
     int b;
-    void setA(int &a){
-        this->a = a;
+    int c;
+    void setA(A &a){
+        this->a = a.a;
+        cout<<"void setA(A &a)"<<endl;
     }
-    void setA(const int &a){
-        this->a = a;
+    void setA(const A &a){
+        this->a = a.a;
+        cout<<"void setA(const A &a)"<<endl;
     }
     void setB(int b){
         this->b = b;
     }
-//    void setB(const int b){
+//    void setB(const int b){   // 报错
 //        this->b = b;
 //    }
+    void setC(int a){
+        cout<<"void setC(int a)"<<endl;
+    }
+    void setC(int a) const{
+        cout<<"void setC(int a) const"<<endl;
+    }
 };
 
 int main() {
     A a;
+    const A b = {1,2,3};
+    a.setA(a);
+    a.setA(b);
+    a.setC(4);
+    b.setC(5);
     return 0;
 }
 ```
-
-```cpp
-#include <iostream>
-using namespace std;
-
-int main() {
-    int a = 1;
-    const int b = a;
-    int c = b;
-
-    const int e = 2;
-    int f = e;
-    return 0;
-}
+运行结果：
 ```
-```cpp
-#include <iostream>
-using namespace std;
-
-int main() {
-    const int c = 3;
-    int b = 2;
-    int a = 1;
-    int *pc = (int *)&c;
-    cout<<hex<<"&a="<<&a<<dec<<"   a="<<a<<endl;
-    cout<<hex<<"&b="<<&b<<dec<<"   b="<<b<<endl;
-    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
-    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
-    *pc = 0xc;
-    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
-    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
-    return 0;
-}
+void setA(A &a)
+void setA(const A &a)
+void setC(int a)
+void setC(int a) const
 ```
-
-```cpp
-#include <iostream>
-using namespace std;
-
-int main() {
-    volatile const int c = 3;
-    int b = 2;
-    int a = 1;
-    int *pc = (int *)&c;
-    cout<<hex<<"&a="<<&a<<dec<<"   a="<<a<<endl;
-    cout<<hex<<"&b="<<&b<<dec<<"   b="<<b<<endl;
-    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
-    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
-    *pc = 0xc;
-    cout<<hex<<"pc="<<pc<<dec<<" *pc="<<*pc<<endl;
-    cout<<hex<<"&c="<<&c<<dec<<"   c="<<c<<endl;
-    return 0;
-}
-```
-
 
 **参考链接**
 
