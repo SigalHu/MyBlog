@@ -3,7 +3,6 @@
 ```cpp
 #include <iostream>
 #include <cstring>
-
 using namespace std;
 
 char* fun(int mod){
