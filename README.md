@@ -3,6 +3,7 @@
 * C++
     * [C++之const关键字](C++/C++之const关键字.md)
     * [C++之extern关键字](C++/C++之extern关键字.md)
+    * [C++之static关键字[转]](C++/C++之static关键字[转].md)
     * [C++之函数返回指针](C++/C++之函数返回指针.md)
     * [C++类的内存分配](C++/C++类的内存分配.md)
     * [C++之POD数据类型](C++/C++之POD数据类型.md)
