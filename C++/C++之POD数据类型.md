@@ -5,6 +5,7 @@
 C++11中把POD分为了两个基本概念的集合，即：平凡的（trival）和标准布局的（standard layout）。只有满足这两个基本概念才能称为是POD类型。
 
 一个trivial class或者struct应该符合以下定义：
+
 * 拥有平凡的默认构造函数（trivial constructor）和析构函数（trivial destructor）
 * 拥有平凡的复制构造函数（trivial copy constructor）和移动构造函数（trivial move constructor）
 * 拥有平凡的复制赋值运算符（trivial assignment operator）和移动赋值运算符（trivial move operator）
@@ -43,6 +44,7 @@ true
 ```
 
 一个standard layout的class或者struct应该符合以下定义：
+
 * 所有非静态成员都有相同的访问权限（public, private, protected）
 * 在class或者struct继承时，满足以下两种情况之一的class或者struct也是标准布局的：
     * 派生类中有非静态成员，且只有一个仅包含静态成员的基类
