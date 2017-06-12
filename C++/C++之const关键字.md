@@ -225,6 +225,23 @@ End of assembler dump.
 
 ### 跟const有关的关键字
 
+**typedef关键字**
+
+通过typedef关键字可以给指针类型定义别名，当通过该别名定义const常量时等价于`<数据类型> * const <变量名>=<初始值>`
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    typedef int * A;
+    int a = 1;
+    const A pa = &a;
+//    *(pa++);  // 错误
+    (*pa)++;
+    return 0;
+}
+```
+
 **volatile关键字**
 
 volatile关键字是一种类型修饰符，用它声明的类型变量表示可能被某些编译器未知的因素更改，比如操作系统、硬件或者其它线程等。遇到这个关键字声明的变量，编译器对访问该变量的代码就不再进行优化，从而可以提供对特殊地址的稳定访问。
