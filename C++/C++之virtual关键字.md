@@ -52,10 +52,13 @@ A2::funA()
 A2::funA()
 A2::funA()
 ```
-通过下面反汇编结果可以看到，实例a1与a2都是通过函数指针完成函数的调用，所以并不存在效率降低问题。但我们也看到包含虚函数的a1所占内存比a2多4字节，虚函数跟普通成员函数一样都保存在代码区，这里多出的4个字节存放的是一个指向类A1虚函数表的指针，在虚函数表中存放着A1中所定义的虚函数。当通过指针或引用调用普通成员函数时，还是直接通过函数指针调用，而此时调用虚函数则是先通过存放在实例的指向虚函数表的指针找到虚函数表，再从虚函数表的确定位置处来获取函数指针，这样就降低了效率。
+通过下面反汇编结果可以看到，实例a1与a2都是通过函数指针完成函数的调用，所以并不存在效率降低问题。但我们也看到包含虚函数的a1所占内存比a2多4字节，虚函数跟普通成员函数一样都保存在代码区，根据下面的截图可以看到，这里多出的4个字节存放的是一个指向类A1虚函数表的指针，在虚函数表中存放着A1中所定义的虚函数。当通过指针或引用调用普通成员函数时，还是直接通过函数指针调用，而此时调用虚函数则是先通过存放在实例的指向虚函数表的指针找到虚函数表，再从虚函数表的确定位置处来获取函数指针，这样就降低了效率。
+
+截图：
 
 ![](C++之virtual关键字/1.png)
 
+部分反汇编结果：
 ```cpp
 ...
 25: 	a1.funA();
@@ -168,49 +171,49 @@ int main() {
 
 ### 覆盖与多态
 
-在基类的派生类中可以通过重写虚函数来实现对基类虚函数的覆盖，当基类的指针指向派生类的对象时，对point的print函数的调用实际上是调用了Derived的print函数而不是Base的print函数。这是面向对象中的多态性的体现
+在基类的派生类中可以通过重写虚函数来实现对基类虚函数的覆盖，我们可以使用指向派生类实例的基类指针或引用调用派生类的重写虚函数，这是面向对象中的多态性的体现。若重写函数不是基类虚函数，此时调用的是基类成员函数。
 ```cpp
 #include <iostream>
 using namespace std;
 
 class A1{
 public:
-	int a;
-	virtual void funA1(){
-		cout << "A1::funA1()" << endl;
-	}
+    virtual void funA1(){
+        cout << "A1::funA1()" << endl;
+    }
 };
 
 class A2{
 public:
-	int a;
-	void funA2(){
-		cout << "A2::funA2()" << endl;
-	}
+    void funA2(){
+        cout << "A2::funA2()" << endl;
+    }
 };
 
-class B :public A1{
+class B :public A1, public A2{
 public:
-	int b;
-	virtual void funA1(){
-		cout << "B::funA1()" << endl;
-	}
+    int b;
+    virtual void funA1(){
+        cout << "B::funA1()" << endl;
+    }
+    void funA2(){
+        cout << "B::funA2()" << endl;
+    }
 };
 
 int main() {
-	A1 a1; A2 a2; B b;
-	cout << "sizeof(a1)=" << sizeof(a1) << endl;
-	a1.funA1();
-	cout << "sizeof(a2)=" << sizeof(a2) << endl;
-	a2.funA2();
-	cout << "sizeof(b)=" << sizeof(b) << endl;
-	b.funA1();
-	A1 &a = b;
-	cout << "sizeof(a)=" << sizeof(a) << endl;
-	a.funA1();
-	cin.get();
-	return 0;
+    B b;
+    A1 &a1 = b;
+    A2 &a2 = b;
+    a1.funA1();
+    a2.funA2();
+    return 0;
 }
+```
+运行结果：
+```
+B::funA1()
+A2::funA2()
 ```
 
 ```cpp
