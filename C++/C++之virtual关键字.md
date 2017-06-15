@@ -171,97 +171,112 @@ int main() {
 
 ### 覆盖与多态
 
-在基类的派生类中可以通过重写虚函数来实现对基类虚函数的覆盖，我们可以使用指向派生类实例的基类指针或引用调用派生类的重写虚函数，这是面向对象中的多态性的体现。若重写函数不是基类虚函数，此时调用的是基类成员函数。
+在基类的派生类中可以通过重写虚函数来实现对基类虚函数的覆盖，我们已经知道，当通过类的指针或引用调用虚函数时，并不是直接通过函数指针，而是通过存放在实例的指向虚函数表的指针找到虚函数表，再从虚函数表的确定位置处来获取函数指针，这个位置在编译时就已经确定。所以，我们可以使用指向派生类实例的基类指针或引用调用派生类的重写虚函数，这是面向对象中的多态性的体现。若重写函数不是基类虚函数，此时调用的是基类成员函数。
 ```cpp
 #include <iostream>
 using namespace std;
 
 class A1{
 public:
-    virtual void funA1(){
-        cout << "A1::funA1()" << endl;
+    virtual void funA11(){
+        cout << "A1::funA11()" << endl;
+    }
+    virtual void funA12(){
+        cout << "A1::funA12()" << endl;
     }
 };
 
 class A2{
 public:
-    void funA2(){
-        cout << "A2::funA2()" << endl;
+    void funA21(){
+        cout << "A2::funA21()" << endl;
     }
 };
 
 class B :public A1, public A2{
 public:
-    int b;
-    virtual void funA1(){
-        cout << "B::funA1()" << endl;
+    virtual void funA11(){
+        cout << "B::funA11()" << endl;
     }
-    void funA2(){
-        cout << "B::funA2()" << endl;
+    virtual void funB1(){
+        cout << "B::funB1()" << endl;
+    }
+    void funA21(){
+        cout << "B::funA21()" << endl;
     }
 };
 
 int main() {
-    B b;
+    B b; A1 a;
     A1 &a1 = b;
     A2 &a2 = b;
-    a1.funA1();
-    a2.funA2();
+    a1.funA11();
+    a1.A1::funA11();
+    a1.funA12();
+    a2.funA21();
     return 0;
 }
 ```
 运行结果：
 ```
-B::funA1()
-A2::funA2()
+B::funA11()
+A1::funA11()
+A1::funA12()
+A2::funA21()
+```
+通过下面的截图，在父类A1实例a指向的虚函数表中存放着A1的虚函数指针，子类B重写了父类虚函数A1::funA11()，我们看到在类B实例b中父类A1拷贝所指向的虚函数表中的A1::funA11()被B::funA11()覆盖。虽然A1的虚函数在B中被覆盖，但在上面的代码中我们还是可以调用A1::funA11()，根据反汇编结果，此时直接通过函数指针调用而不是经过虚函数表。
+
+截图：
+
+![](C++之virtual关键字/2.png) ![](C++之virtual关键字/3.png)
+
+部分反汇编结果：
+```cpp
+38: 	a1.funA11();
+mov         eax,dword ptr [a1]
+mov         edx,dword ptr [eax]
+mov         esi,esp
+mov         ecx,dword ptr [a1]
+mov         eax,dword ptr [edx]
+call        eax
+cmp         esi,esp
+call        __RTC_CheckEsp (0FA133Eh)
+39: 	a1.A1::funA11();
+mov         ecx,dword ptr [a1]
+call        A1::funA11 (0FA14F6h)
+40: 	a1.funA12();
+mov         eax,dword ptr [a1]
+mov         edx,dword ptr [eax]
+mov         esi,esp
+mov         ecx,dword ptr [a1]
+mov         eax,dword ptr [edx+4]
+call        eax
+cmp         esi,esp
+call        __RTC_CheckEsp (0FA133Eh)
+41: 	a2.funA21();
+mov         ecx,dword ptr [a2]
+call        A2::funA21 (0FA14ECh)
 ```
 
 ```cpp
 #include <iostream>
 using namespace std;
 
-class A{
+class A1{
 public:
-	virtual void funA1(){
-		cout << "A::funA1()" << endl;
+	virtual ~A1(){
+		cout << "A1::~A1()" << endl;
 	}
 };
 
-class B:public A{
+class A2{
 public:
-	int a;
-	virtual void funA1(){
-		cout << "B::funA1()" << endl;
+	~A2(){
+		cout << "A2::~A2()" << endl;
 	}
 };
 
-int main() {
-	B b;
-	b.funA1();
-	b.A::funA1();
-	A &ab = b;
-	ab.funA1();
-	ab.A::funA1();
-	A *pb = &b;
-	pb->funA1();
-	pb->A::funA1();
-	cin.get();
-	return 0;
-}
-```
-
-```cpp
-#include <iostream>
-using namespace std;
-
-class A{
-public:
-	virtual ~A(){
-		cout << "A::~A()" << endl;
-	}
-};
-
-class B:public A{
+class B :public A1, public A2{
 public:
 	~B(){
 		cout << "B::~B()" << endl;
@@ -269,11 +284,29 @@ public:
 };
 
 int main() {
-	A *pb = new B();
-	delete pb;
-	cin.get();
+		{
+			B b;
+		}
+	cout << endl;
+	A1 *pa1 = new B();
+	delete pa1;
+	cout << endl;
+	A2 *pa2 = new B();
+	delete pa2;
 	return 0;
 }
+```
+运行结果：
+```
+B::~B()
+A2::~A2()
+A1::~A1()
+
+B::~B()
+A2::~A2()
+A1::~A1()
+
+A2::~A2()
 ```
 
 ### 虚基类
