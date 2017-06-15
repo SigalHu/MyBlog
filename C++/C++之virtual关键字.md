@@ -399,9 +399,9 @@ class VB1 :virtual public A {};
 
 class VB2 :virtual public A {};
 
-class B1 : public A {};
+class B1 :public A {};
 
-class B2 : public A {};
+class B2 :public A {};
 
 class C1 :public VB1, public VB2 {};
 
@@ -419,14 +419,15 @@ int main() {
 	return 0;
 }
 ```
-在代码中，VB1与VB2虚继承自A，然后C1继承VB1与VB2，B1与B2继承自A，然后C2继承B1与B2，就是交叉继承的情况。在main()中，分别将实例c1与c2的成员变量a赋值，通过下面截图可以看到，
+在代码中，VB1与VB2虚继承自A，然后C1继承VB1与VB2，B1与B2继承自A，然后C2继承B1与B2，就是交叉继承的情况。在main()中，分别将实例c1与c2的成员变量a赋值，通过下面截图可以看到，实例c1只有一份A的拷贝，分别通过VB1与VB2给成员变量a赋不同值，a的值等于最后一次赋值；实例c2则有来自B1与B2的两份A的拷贝，分别通过B1与B2给成员变量a赋不同值，在c2中B1与B2中的a为不同值。
 
 截图：
 
 ![](C++之virtual关键字/5.png) ![](C++之virtual关键字/6.png)
 
+在普通继承中，子类与父类是“is a”的关系；在虚继承中，子类与虚基类是“has a”的关系，因此虚继承可以认为不是一种继承关系，而是一种组合的关系。不能因为虚继承有着继承这两个字就认为和普通继承的用法没什么不同。
 
-
+在以下代码中，我们用父类A的别名a2引用普通继承的子类B2，也可以再将其转化回子类别名b2的引用；但当用父类A的别名a1引用虚继承的子类B1时，我们不可以直接再将其转化回子类别名b1的引用，而需要其他方法间接转化。
 ```cpp
 #include <iostream>
 using namespace std;
@@ -457,6 +458,8 @@ int main() {
 	a1.fun();
 //	B1 &b1 = static_cast<B1&>(a1);  // 错误
 //	b1.fun();
+	B1 &b1 = *(B1*)(void*)&a1;
+	b1.fun();
 
 	A &&a2 = B2();
 	a2.fun();
@@ -468,10 +471,11 @@ int main() {
 运行结果：
 ```
 B1::fun()
+B1::fun()
 B2::fun()
 B2::fun()
 ```
-
+虚继承也存在与普通继承相同的问题，即如果想要利用类的多态，最好将析构函数声明为虚函数，以确保在销毁对象时所有析构函数都被执行。
 ```cpp
 #include <iostream>
 using namespace std;
