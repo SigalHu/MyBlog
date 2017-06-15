@@ -257,6 +257,220 @@ call        __RTC_CheckEsp (0FA133Eh)
 mov         ecx,dword ptr [a2]
 call        A2::funA21 (0FA14ECh)
 ```
+若通过new申请子类对象并赋值给父类指针，则使用delete释放内存空间时，如果父类中的析构函数没有声明为虚函数，就不会调用子类的析构函数。所以如果想要利用类的多态，最好将析构函数声明为虚函数，以确保在销毁对象时所有析构函数都被执行。
+```cpp
+#include <iostream>
+using namespace std;
+
+class A1{
+public:
+    virtual ~A1(){
+        cout << "A1::~A1()" << endl;
+    }
+};
+
+class A2{
+public:
+    ~A2(){
+        cout << "A2::~A2()" << endl;
+    }
+};
+
+class B :public A1, public A2{
+public:
+    ~B(){
+        cout << "B::~B()" << endl;
+    }
+};
+
+int main() {
+    {
+        A2 &&a2 = B();
+    }
+    cout << endl;
+    A1 *pa1 = new B();
+    delete pa1;
+    cout << endl;
+    A2 *pa2 = new B();
+    delete pa2;
+    return 0;
+}
+```
+运行结果：
+```
+B::~B()
+A2::~A2()
+A1::~A1()
+
+B::~B()
+A2::~A2()
+A1::~A1()
+
+A2::~A2()
+```
+当子类继承多个包含虚函数的父类时，子类实例中父类的拷贝按继承顺序存放，且每一个包含虚函数父类拷贝中都存放着一个指向各自父类虚函数表的指针。
+```cpp
+#include <iostream>
+using namespace std;
+
+class A1{
+public:
+	virtual void funA1(){
+		cout << "A1::funA1()" << endl;
+	}
+	virtual void funA2(){
+		cout << "A1::funA2()" << endl;
+	}
+	virtual void funA3(){
+		cout << "A1::funA3()" << endl;
+	}
+};
+
+class A2{
+public:
+	virtual void funA2(){
+		cout << "A2::funA2()" << endl;
+	}
+	virtual void funA4(){
+		cout << "A2::funA4()" << endl;
+	}
+};
+
+class B :public A1, public A2{
+public:
+	virtual void funA1(){
+		cout << "B::funA1()" << endl;
+	}
+	virtual void funA2(){
+		cout << "B::funA2()" << endl;
+	}
+	virtual void funB(){
+		cout << "B::funB()" << endl;
+	}
+};
+
+int main() {
+	B b;
+	typedef void(*Fun)();
+	unsigned int *tableA1 = (unsigned int *)*(unsigned int *)&b,
+	        	 *tableA2 = (unsigned int *)*((unsigned int *)&b+1);
+	((Fun)tableA1[0])();
+	((Fun)tableA1[1])();
+	((Fun)tableA1[2])();
+	((Fun)tableA1[3])();
+//	((Fun)tableA1[4])();  // 错误
+	cout << endl;
+	((Fun)tableA2[0])();
+	((Fun)tableA2[1])();
+//	((Fun)tableA2[2])();  // 错误
+	return 0;
+}
+```
+运行结果：
+```
+B::funA1()
+B::funA2()
+A1::funA3()
+B::funB()
+
+B::funA2()
+A2::funA4()
+```
+根据代码和截图可以看到，在子类B中重写父类A1与A2的虚函数，会覆盖所有虚函数表中具有相同函数签名的虚函数指针；而若在子类B中定义新的虚函数，根据运行结果可以看到，新的虚函数指针存放在实例b中的第一个虚函数表末尾。
+
+截图：
+
+![](C++之virtual关键字/4.png)
+
+### 虚继承与虚基类
+
+虚继承主要解决交叉继承带来的问题，子类虚继承的父类称为虚基类。
+```cpp
+#include <iostream>
+using namespace std;
+
+class A {
+public:
+	int a;
+	virtual void fun() {}
+};
+
+class VB1 :virtual public A {};
+
+class VB2 :virtual public A {};
+
+class B1 : public A {};
+
+class B2 : public A {};
+
+class C1 :public VB1, public VB2 {};
+
+class C2 :public B1, public B2{};
+
+int main() {
+	C1 c1; c1.VB1::a = 11; c1.VB2::a = 12;
+	C2 c2; c2.B1::a = 21; c2.B2::a = 22;
+	c1.fun();
+	c1.VB1::fun();
+	c1.VB2::fun();
+//	c2.fun();  // 错误
+	c2.B1::fun();
+	c2.B2::fun();
+	return 0;
+}
+```
+在代码中，VB1与VB2虚继承自A，然后C1继承VB1与VB2，B1与B2继承自A，然后C2继承B1与B2，就是交叉继承的情况。在main()中，分别将实例c1与c2的成员变量a赋值，通过下面截图可以看到，
+
+截图：
+
+![](C++之virtual关键字/5.png) ![](C++之virtual关键字/6.png)
+
+
+
+```cpp
+#include <iostream>
+using namespace std;
+
+class A{
+public:
+	virtual void fun(){
+		cout << "A::fun()" << endl;
+	}
+};
+
+class B1 :virtual public A{
+public:
+	virtual void fun(){
+		cout << "B1::fun()" << endl;
+	}
+};
+
+class B2 :public A{
+public:
+	virtual void fun(){
+		cout << "B2::fun()" << endl;
+	}
+};
+
+int main() {
+	A &&a1 = B1();
+	a1.fun();
+//	B1 &b1 = static_cast<B1&>(a1);  // 错误
+//	b1.fun();
+
+	A &&a2 = B2();
+	a2.fun();
+	B2 &b2 = static_cast<B2&>(a2);
+	b2.fun();
+	return 0;
+}
+```
+运行结果：
+```
+B1::fun()
+B2::fun()
+B2::fun()
+```
 
 ```cpp
 #include <iostream>
@@ -276,7 +490,7 @@ public:
 	}
 };
 
-class B :public A1, public A2{
+class B :virtual public A1, virtual public A2{
 public:
 	~B(){
 		cout << "B::~B()" << endl;
@@ -285,7 +499,7 @@ public:
 
 int main() {
 		{
-			B b;
+			A2 &&a2 = B();
 		}
 	cout << endl;
 	A1 *pa1 = new B();
@@ -307,64 +521,6 @@ A2::~A2()
 A1::~A1()
 
 A2::~A2()
-```
-
-### 虚基类
-
-```cpp
-#include <iostream>
-using namespace std;
-
-class A{
-public:
-	virtual void fun(){
-		cout << "A::fun()" << endl;
-	}
-};
-
-class B :virtual public A{
-public:
-	virtual void fun(){
-		cout << "B::fun()" << endl;
-	}
-};
-
-int main() {
-	A &&a = B();
-	a.fun();
-	//B &b = static_cast<B&>(a);
-	//b.fun();
-	cin.get();
-	return 0;
-}
-```
-
-```cpp
-#include <iostream>
-using namespace std;
-
-class A{
-public:
-	virtual ~A(){
-		cout << "A::~A()" << endl;
-	}
-};
-
-class B :virtual public A{
-public:
-	~B(){
-		cout << "B::~B()" << endl;
-	}
-};
-
-int main() {
-		{
-			A *pb = new B();
-			delete pb;
-		}
-	cin.get();
-	return 0;
-}
 ```
 
 **参考链接**
