@@ -279,24 +279,32 @@ using namespace std;
 
 class A{
 public:
-    int a;
-    mutable int b;
-    void set(int a,int b)const{
-//        this->a = a;  // 报错
-        this->b = b;
-    }
+	int a;
+	mutable int b;
+	void set(int a, int b)const{
+//      this->a = a;  // 报错
+		const_cast<A *>(this)->a = a;
+		this->b = b;
+	}
 };
 
 int main() {
-    const A a={1,2};
-    cout<<a.a <<" "<<a.b<<endl;
-//    a.a = 2;  // 报错
-    a.b = 3;
-    cout<<a.a <<" "<<a.b<<endl;
-    a.set(4,4);
-    cout<<a.a <<" "<<a.b<<endl;
-    return 0;
+	const A a = { 1, 2 };
+	cout << a.a << " " << a.b << endl;
+//  a.a = 3;  // 报错
+	const_cast<A&>(a).a = 3;
+	a.b = 4;
+	cout << a.a << " " << a.b << endl;
+	a.set(5, 6);
+	cout << a.a << " " << a.b << endl;
+	return 0;
 }
+```
+运行结果：
+```
+1 2
+3 4
+5 6
 ```
 
 ### const的进一步探究
