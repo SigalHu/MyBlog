@@ -379,34 +379,53 @@ int main() {
 1 1|2 2|3 3
 1 2|3 3|4 4
 ```
-在下面的代码中，字符串指针c与d的初始化字符串保存在常量区，数据不可进行修改，如果强制修改，就会出现内存读写错误，与const无关。
+在下面的代码中，全局常量a与b、局部静态常量d、字符串指针h与i的初始化字符串保存在常量区，数据不可进行修改，如果强制修改，就会出现内存读写错误，与const无关。另外，修改指针pf所指向的内存数据后，字符常量f的输出字符不变是编译器优化的结果，通过pf输出可以看到，此处内存的数据已经被修改。
 ```cpp
 #include <iostream>
 using namespace std;
 
+const char a = '0';
+const char b[] = "1";
+volatile const char c = '2';
+
 int main() {
-    const char a = '1';
-    const char b[] = "2";
-    const char *c = "3";
-    char *d = "4";
+    static const char d = '3';
+    volatile static const char e = '4';
+    const char f = '5';
+    const char g[] = "6";
+    const char *h = "7";
+    char *i = "8";
+
     char *pa = (char *)&a;
     char *pb = (char *)b;
-    char *pc = (char *)c;
-    char *pd = (char *)d;
+    char *pc = (char *)&c;
+    char *pd = (char *)&d;
+    char *pe = (char *)&e;
+    char *pf = (char *)&f;
+    char *pg = (char *)g;
+    char *ph = (char *)h;
+    char *pi = (char *)i;
 
-    cout<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
-    (*pa)++;
-    (*pb)++;
-//    (*pc)++;  // 运行错误
+    cout<<a<<" "<<b<<" "<<c<<" "<<d<<" "<<e<<" "<<f<<" "<<g<<" "<<h<<" "<<i<<endl;
+//    (*pa)++;  // 运行错误
+//    (*pb)++;  // 运行错误
+//    (*pc)++;  // 可能运行错误，跟编译器有关
 //    (*pd)++;  // 运行错误
-    cout<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
+//    (*pe)++;  // 可能运行错误，跟编译器有关
+    (*pf)++;
+    (*pg)++;
+//    (*ph)++;  // 运行错误
+//    (*pi)++;  // 运行错误
+    cout<<a<<" "<<b<<" "<<c<<" "<<d<<" "<<e<<" "<<f<<" "<<g<<" "<<h<<" "<<i<<endl;
+    cout<<*pa<<" "<<*pb<<" "<<*pc<<" "<<*pd<<" "<<*pe<<" "<<*pf<<" "<<*pg<<" "<<*ph<<" "<<*pi<<endl;
     return 0;
 }
 ```
 运行结果：
 ```
-1 2 3 4
-1 3 3 4
+0 1 2 3 4 5 6 7 8
+0 1 2 3 4 5 7 7 8
+0 1 2 3 4 6 7 7 8
 ```
 在下面的代码与汇编中，类A的常量数据成员a在实例定义时初始化，而静态常量数据成员b保存在全局数据区，为所有类A实例所共享，在编译时由编译器进行常量替换，而且，通过类实例访问的b也同样被优化。
 ```cpp
