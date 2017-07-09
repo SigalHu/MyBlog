@@ -2,6 +2,7 @@
 
 ### 获取与创建项目
 
+#### git init
 ```bash
 # 在当前目录新建一个Git代码库
 $ git init
@@ -9,7 +10,7 @@ $ git init
 # 在指定目录初始化为Git代码库
 $ git init [project-name]
 ```
-
+#### git clone
 ```bash
 # 下载一个项目和它的整个代码历史到当前路径
 $ git clone [url]
@@ -22,6 +23,7 @@ $ git clone [url] [project-name]
 
 Git的设置文件为`.gitconfig`，它可以在用户主目录下（全局配置），也可以在项目目录下（项目配置）。
 
+#### git config
 ```bash
 # 显示当前的Git配置
 $ git config --list
@@ -36,6 +38,7 @@ $ git config [--global] user.email "[email address]"
 
 ### 暂存区操作
 
+#### git add
 ```bash
 # 添加指定文件到暂存区
 $ git add [file1] [file2] ...
@@ -46,7 +49,7 @@ $ git add [dir]
 # 添加当前目录的所有文件到暂存区
 $ git add .
 ```
-
+#### git rm
 ```bash
 # 删除暂存区中的指定文件，但该文件会保留在工作区
 $ git rm --cached [file]
@@ -54,7 +57,7 @@ $ git rm --cached [file]
 # 在暂存区与工作区中删除指定文件
 $ git rm -f [file]
 ```
-
+#### git mv
 ```bash
 # 在暂存区与工作区中重命名或移动文件
 $ git mv [file-original] [file-renamed]
@@ -62,6 +65,7 @@ $ git mv [file-original] [file-renamed]
 
 ### 提交操作
 
+#### git commit
 ```bash
 # 提交暂存区到仓库区
 $ git commit -m [message]
@@ -69,7 +73,7 @@ $ git commit -m [message]
 # 提交暂存区的指定文件到仓库区
 $ git commit [file1] [file2] ... -m [message]
 
-# 提交工作区自上次commit之后的变化，直接到仓库区
+# 提交工作区所有已跟踪文件的变化到仓库区
 $ git commit -am [message]
 
 # 提交时显示所有diff信息
@@ -85,6 +89,7 @@ $ git commit --amend [file1] [file2] ...
 
 ### 撤销操作
 
+#### git checkout
 ```bash
 # 恢复暂存区的指定文件到工作区
 $ git checkout [file]
@@ -95,7 +100,7 @@ $ git checkout [commit] [file]
 # 恢复暂存区的所有文件到工作区
 $ git checkout .
 ```
-
+#### git reset
 ```bash
 # 重置暂存区的指定文件，与上一次commit保持一致，但工作区不变
 $ git reset [HEAD] [file1] [file2] ...
@@ -106,13 +111,14 @@ $ git reset HEAD [dir]
 # 重置暂存区，与上一次commit保持一致，但工作区不变
 $ git reset [HEAD]
 
-# 重置暂存区，与指定commit保持一致，但工作区不变
+# 重置当前分支的HEAD为指定commit，同时重置暂存区，与指定commit保持一致，但工作区不变
 $ git reset [commit]
 
 # 重置暂存区与工作区，与上一次commit保持一致
 $ git reset --hard
 
 # 重置当前分支的HEAD为指定commit，同时重置暂存区和工作区，与指定commit一致
+# 慎用，指定commit之后的提交会消失
 $ git reset --hard [commit]
 
 # 重置当前HEAD为指定commit，但保持暂存区和工作区不变
@@ -121,22 +127,23 @@ $ git reset --keep [commit]
 
 ### 信息查看
 
+#### git status
 ```bash
 # 显示文件信息变更，-s参数输出简短结果
 $ git status [-s]
 ```
-
+#### git diff
 ```bash
-# 显示尚未缓存的改动
+# 显示工作区相比于暂存区中文件的改动
 $ git diff
 
-# 显示摘要而非整个 diff
+# 显示摘要而非改动的详细信息
 $ git diff --stat
 
-# 查看已缓存的改动
+# 查看暂存区中指定文件相比于上次提交的改动
 $ git diff --cached [file]
 
-# 查看已缓存的与未缓存的所有改动
+# 查看工作区文件相比于上次提交的改动
 $ git diff HEAD
 
 # 显示当前分支与其他分支之间的差异
@@ -154,13 +161,22 @@ $ git diff [first-commit] [second-commit]
 # 显示今天你写了多少行代码
 $ git diff --shortstat "@{0 day ago}"
 ```
-
+#### git log
 ```bash
 # 显示当前分支的版本历史
 $ git log
 
+# 显示指定分支的版本历史
+$  git log [branchname]
+
+# 显示在第一个分支且不在第二个分支的提交信息
+$ git log [first-branch] ^[second-branch]
+
 # 显示当前分支的简洁版本历史
 $ git log --oneline
+
+# 显示commit历史，以及标签信息
+$ git log --decorate
 
 # 显示commit历史，以及每次commit发生变更的文件
 $ git log --stat
@@ -181,25 +197,28 @@ $ git whatchanged [file]
 # 显示指定文件相关的每一次diff
 $ git log -p [file]
 ```
-
+#### git shortlog
 ```bash
 # 显示所有提交过的用户，按提交次数排序
 $ git shortlog -sn
 ```
-
+#### git blame
 ```bash
 # 显示指定文件是什么人在什么时间修改过
 $ git blame [file]
 ```
-
+#### git show
 ```bash
-# 显示某次提交的元数据和内容变化
+# 显示指定提交的元数据和内容变化
 $ git show [commit]
 
-# 显示某次提交发生变化的文件
+# 显示指定标签的元数据和内容变化
+$ git show [tag]
+
+# 显示指定提交发生变化的文件
 $ git show --name-only [commit]
 
-# 显示某次提交时，某个文件的内容
+# 显示指定提交的指定文件内容
 $ git show [commit]:[filename]
 
 # 显示上次提交的元数据和内容变化
@@ -210,6 +229,71 @@ $ git show HEAD^
 
 # 显示倒数第3次提交的元数据和内容变化
 $ git show HEAD~2
+```
+
+### 分支管理
+
+#### git branch
+```bash
+# 新建分支
+$ git branch [branchname]
+
+# 删除指定分支
+$ git branch -d [branchname]
+
+# 列出所有本地分支
+$ git branch
+```
+#### git checkout
+```bash
+# 切换到指定分支
+$ git checkout [branchname]
+
+# 新建分支并切换到该分支
+$ git checkout -b [branchname]
+```
+#### git merge
+```bash
+# 合并指定分支到当前分支
+$ git merge [branchname]
+```
+#### 冲突解决
+
+在 Git 中，可以用 git add 要告诉 Git 文件冲突已经解决
+```bash
+# 修改冲突文件
+$ vim [file]
+
+# 提交修改文件
+$ git add [file]
+$ git commit
+```
+
+### 标签操作
+
+如果你达到一个重要的阶段，并希望永远记住那个特别的提交快照，你可以使用git tag给它打上标签。比如说，我们想为项目发布一个"1.0"版本。我们可以用`git tag -a v1.0`命令给最新一次提交打上（HEAD）"v1.0"的标签。
+
+#### git tag
+```bash
+# 创建标签并指定标签信息
+$ git tag -a v1.0 -m [message]
+
+# 给指定提交创建标签并指定标签信息
+$ git tag -a v0.9 -m [message] [commit]
+
+# 查看所有标签
+$ git tag
+
+# 删除指定标签
+$ git tag -d v1.0
+```
+
+### 远程仓库
+
+#### git remote
+```bash
+# 给远程仓库指定别名
+$ git remote add [shortname] [url]
 ```
 
 **参考链接**
