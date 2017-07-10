@@ -167,7 +167,7 @@ $ git diff --shortstat "@{0 day ago}"
 $ git log
 
 # 显示指定分支的版本历史
-$  git log [branchname]
+$  git log [branch]
 
 # 显示在第一个分支且不在第二个分支的提交信息
 $ git log [first-branch] ^[second-branch]
@@ -236,27 +236,48 @@ $ git show HEAD~2
 #### git branch
 ```bash
 # 新建分支
-$ git branch [branchname]
+$ git branch [branch]
+
+# 新建一个分支，指向指定commit
+$ git branch [branch] [commit]
+
+# 新建一个分支，与指定的远程分支建立追踪关系
+$ git branch --track [branch] [remote-branch]
+
+# 建立追踪关系，在现有分支与指定的远程分支之间
+$ git branch --set-upstream-to [branch] [remote-branch]
 
 # 删除指定分支
-$ git branch -d [branchname]
+$ git branch -d [branch]
 
 # 列出所有本地分支
 $ git branch
+
+# 列出所有远程分支
+$ git branch -r
+
+# 列出所有本地分支和远程分支
+$ git branch -a
 ```
 #### git checkout
 ```bash
 # 切换到指定分支
-$ git checkout [branchname]
+$ git checkout [branch]
 
 # 新建分支并切换到该分支
-$ git checkout -b [branchname]
+$ git checkout -b [branch]
 ```
 #### git merge
 ```bash
 # 合并指定分支到当前分支
-$ git merge [branchname]
+$ git merge [branch]
 ```
+#### git cherry-pick
+```bash
+# 选择一个commit，合并进当前分支
+$ git cherry-pick [commit]
+```
+
 #### 冲突解决
 
 在 Git 中，可以用 git add 要告诉 Git 文件冲突已经解决
