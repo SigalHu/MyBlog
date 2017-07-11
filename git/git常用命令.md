@@ -125,7 +125,7 @@ $ git reset --hard [commit]
 $ git reset --keep [commit]
 ```
 
-### 
+###
 
 ### 信息查看
 
@@ -238,19 +238,22 @@ $ git show HEAD~2
 #### git branch
 ```bash
 # 新建分支
-$ git branch [branch]
+$ git branch [branch-name]
 
 # 新建一个分支，指向指定commit
-$ git branch [branch] [commit]
+$ git branch [branch-name] [commit]
 
 # 新建一个分支，与指定的远程分支建立追踪关系
-$ git branch --track [branch] [remote-branch]
+$ git branch --track [branch-name] [remote-branch]
 
 # 建立追踪关系，在现有分支与指定的远程分支之间
-$ git branch --set-upstream-to [branch] [remote-branch]
+$ git branch --set-upstream-to [branch-name] [remote-branch]
 
 # 删除指定分支
-$ git branch -d [branch]
+$ git branch -d [branch-name]
+
+# 删除远程分支
+$ git push origin --delete [branch-name]
 
 # 列出所有本地分支
 $ git branch
