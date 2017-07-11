@@ -125,6 +125,8 @@ $ git reset --hard [commit]
 $ git reset --keep [commit]
 ```
 
+### 
+
 ### 信息查看
 
 #### git status
@@ -277,7 +279,6 @@ $ git merge [branch]
 # 选择一个commit，合并进当前分支
 $ git cherry-pick [commit]
 ```
-
 #### 冲突解决
 
 在 Git 中，可以用 git add 要告诉 Git 文件冲突已经解决
