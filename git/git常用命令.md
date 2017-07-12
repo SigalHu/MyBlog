@@ -124,8 +124,34 @@ $ git reset --hard [commit]
 # 重置当前HEAD为指定commit，但保持暂存区和工作区不变
 $ git reset --keep [commit]
 ```
+#### git revert
+```bash
+# 撤销上次提交，并把这次撤销作为一次最新的提交
+$ git revert HEAD
 
-###
+# 撤销指定的版本，撤销也会作为一次提交进行保存
+$ git revert [commit]
+```
+
+### 贮藏操作
+
+#### git stash
+```bash
+# 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中
+$ git stash
+
+# 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容
+$ git stash pop
+
+# 读取指定版本号为stash@{1}的保存内容，恢复工作区的相关内容
+$ git stash apply stash@{1}
+
+# 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
+$ git stash list
+
+# 清空Git栈
+$ git stash clear
+```
 
 ### 信息查看
 
@@ -370,5 +396,7 @@ $ git push origin :refs/tags/[tag-name]
 [git常用命令解释](https://wenku.baidu.com/view/5a3f580fcf84b9d528ea7a69.html)</br>
 [Git push 常见用法](http://www.cnblogs.com/qianqiannian/p/6008140.html)</br>
 [Git 远程分支常用管理--查看+删除+重命名](https://my.oschina.net/kimcerry/blog/702980)</br>
-[Git查看、删除、重命名远程分支和tag](http://zengrong.net/post/1746.htm)
-[git常用命令之git push使用说明](http://blog.csdn.net/jo__yang/article/details/50972807)
+[Git查看、删除、重命名远程分支和tag](http://zengrong.net/post/1746.htm)</br>
+[git常用命令之git push使用说明](http://blog.csdn.net/jo__yang/article/details/50972807)</br>
+[Git Stash用法](http://www.cppblog.com/deercoder/archive/2011/11/13/160007.aspx)</br>
+[git入门（5）-Git revert和git reset版本的回退](http://blog.csdn.net/codectq/article/details/50777934)
