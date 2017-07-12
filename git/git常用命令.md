@@ -269,6 +269,9 @@ $ git branch [branch-name]
 # 新建一个分支，指向指定commit
 $ git branch [branch-name] [commit]
 
+# 重命名本地分支
+$ git branch -m [old-branchname] [new-branchname]
+
 # 新建一个分支，与指定的远程分支建立追踪关系
 $ git branch --track [branch-name] [remote-branch]
 
@@ -346,11 +349,23 @@ $ git tag -d v1.0
 
 #### git remote
 ```bash
-# 给远程仓库指定别名
+# 列出所有关联的远程仓库
+$ git remote
+
+# 列出所有关联的远程仓库的详细信息
+$ git remote -v
+
+# 将远程仓库与本地仓库关联并指定别名
 $ git remote add [shortname] [url]
 
-#
+# 修改远程仓库在本地的别名(默认为origin)
+$ git remote rename [old-shortname] [new-shortname]
+
+# 查看远程仓库的详细信息
 $ git remote show origin
+
+# 移除远程仓库与本地仓库的关联
+$ git remote rm origin
 ```
 #### git push
 ```bash
@@ -380,13 +395,31 @@ $ git push origin :[branch-name]
 # 推送本地tag
 $ git push --tags
 
-# 获取远程tag
-git fetch origin tag [tag-name]
-
 # 删除远程tag
 $ git push origin --delete tag [tag-name]
 # 推送一个空tag到远程tag，相当于删除远程tag
 $ git push origin :refs/tags/[tag-name]
+```
+#### git pull
+```bash
+# 将指定远程分支拉取到本地指定分支(若不存在则新建)
+$ git pull origin [remote-branch]:[branch-name]
+
+# 拉取与当前分支存在追踪关系的远程分支
+$ git pull
+
+# 强制拉取远程分支，并重写工作区
+$ git pull --force
+```
+#### git fetch
+```bash
+# 将与当前分支存在追踪关系的远程分支取回本地
+$ git fetch
+# 将取回的远程分支合并到当前分支(FETCH_HEAD可省略)
+$ git merge [FETCH_HEAD]
+
+# 获取远程tag
+git fetch origin tag [tag-name]
 ```
 
 **参考链接**
