@@ -301,6 +301,9 @@ $ git checkout
 # 切换到指定分支
 $ git checkout [branch]
 
+# 切换回上一分支
+$ git checkout -
+
 # 新建分支并切换到该分支
 $ git checkout -b [branch]
 ```
@@ -340,6 +343,9 @@ $ git tag -a v0.9 -m [message] [commit]
 
 # 查看所有标签
 $ git tag
+
+# 查看特定标签
+$ git tag --list 'v1.*'
 
 # 删除指定标签
 $ git tag -d v1.0
@@ -392,7 +398,10 @@ $ git push origin --delete [branch-name]
 # 推送一个空分支到远程分支，相当于删除远程分支
 $ git push origin :[branch-name]
 
-# 推送本地tag
+# 推送本地指定tag
+$ git push origin [tag-name]
+
+# 推送本地所有tag
 $ git push --tags
 
 # 删除远程tag
@@ -405,6 +414,12 @@ $ git push origin :refs/tags/[tag-name]
 # 将指定远程分支拉取到本地指定分支(若不存在则新建)
 $ git pull origin [remote-branch]:[branch-name]
 
+# 将默认远程分支master拉取到本地指定分支(若不存在则新建)
+$ git pull origin :[branch-name]
+
+# 将与指定远程分支取回本地(未与当前分支合并)
+$ git pull origin [remote-branch]
+
 # 拉取与当前分支存在追踪关系的远程分支
 $ git pull
 
@@ -413,12 +428,27 @@ $ git pull --force
 ```
 #### git fetch
 ```bash
-# 将与当前分支存在追踪关系的远程分支取回本地
+# 将指定远程分支拉取到本地指定分支(若不存在则新建)
+$ git fetch origin [remote-branch]:[branch-name]
+
+# 将默认远程分支master拉取到本地指定分支(若不存在则新建)
+$ git fetch origin :[branch-name]
+
+# 将指定远程分支取回本地(未与当前分支合并)
+$ git fetch origin [remote-branch]
+
+# 将与当前分支存在追踪关系的远程分支取回本地(未与当前分支合并)
 $ git fetch
 # 将取回的远程分支合并到当前分支(FETCH_HEAD可省略)
 $ git merge [FETCH_HEAD]
 
-# 获取远程tag
+# 推送本地指定tag
+$ git push origin [tag-name]
+
+# 获取远程所有tag
+$ git fetch --tags
+
+# 获取远程指定tag
 git fetch origin tag [tag-name]
 ```
 
