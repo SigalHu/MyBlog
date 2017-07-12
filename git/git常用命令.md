@@ -246,14 +246,14 @@ $ git branch [branch-name] [commit]
 # 新建一个分支，与指定的远程分支建立追踪关系
 $ git branch --track [branch-name] [remote-branch]
 
-# 建立追踪关系，在现有分支与指定的远程分支之间
-$ git branch --set-upstream-to [branch-name] [remote-branch]
+# 在现有分支与指定的远程分支之间建立追踪关系
+$ git branch --set-upstream-to=origin/[remote-branch] [branch-name]
 
 # 删除指定分支
 $ git branch -d [branch-name]
 
-# 删除远程分支
-$ git push origin --delete [branch-name]
+# 删除与指定远程分支的追踪关系
+$ git branch -dr origin/[remote-branch]
 
 # 列出所有本地分支
 $ git branch
@@ -266,6 +266,9 @@ $ git branch -a
 ```
 #### git checkout
 ```bash
+# 查看当前分支信息
+$ git checkout
+
 # 切换到指定分支
 $ git checkout [branch]
 
@@ -319,10 +322,53 @@ $ git tag -d v1.0
 ```bash
 # 给远程仓库指定别名
 $ git remote add [shortname] [url]
+
+#
+$ git remote show origin
+```
+#### git push
+```bash
+# 将本地指定分支推送到指定远程分支(若不存在则新建)
+$ git push origin [branch-name]:[remote-branch]
+
+# 将本地指定分支推送到指定远程分支(若不存在则新建)，同时指定origin为默认主机，并建立追踪关系
+$ git push origin -u [branch-name]:[remote-branch]
+
+# 将本地指定分支推送到同名远程分支(若不存在则新建)
+$ git push origin [branch-name]
+
+# 将当前分支推送到存在追踪关系的远程分支
+$ git push
+
+# 不管是否存在对应的远程分支，将本地的所有分支都推送到远程主机
+$ git push --all
+
+# 如果远程主机的版本比本地版本更新，推送时Git会报错，要求先在本地做git pull合并差异，然后再推送到远程主机。这时，如果你一定要推送，可以使用-–force选项
+$ git push --force
+
+# 删除远程分支
+$ git push origin --delete [branch-name]
+# 推送一个空分支到远程分支，相当于删除远程分支
+$ git push origin :[branch-name]
+
+# 推送本地tag
+$ git push --tags
+
+# 获取远程tag
+git fetch origin tag [tag-name]
+
+# 删除远程tag
+$ git push origin --delete tag [tag-name]
+# 推送一个空tag到远程tag，相当于删除远程tag
+$ git push origin :refs/tags/[tag-name]
 ```
 
 **参考链接**
 
 [常用 Git 命令清单](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)</br>
 [菜鸟教程--Git 教程](http://www.runoob.com/git/git-basic-operations.html)</br>
-[git常用命令解释](https://wenku.baidu.com/view/5a3f580fcf84b9d528ea7a69.html)
+[git常用命令解释](https://wenku.baidu.com/view/5a3f580fcf84b9d528ea7a69.html)</br>
+[Git push 常见用法](http://www.cnblogs.com/qianqiannian/p/6008140.html)</br>
+[Git 远程分支常用管理--查看+删除+重命名](https://my.oschina.net/kimcerry/blog/702980)</br>
+[Git查看、删除、重命名远程分支和tag](http://zengrong.net/post/1746.htm)
+[git常用命令之git push使用说明](http://blog.csdn.net/jo__yang/article/details/50972807)
