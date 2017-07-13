@@ -452,6 +452,10 @@ $ git fetch --tags
 git fetch origin tag [tag-name]
 ```
 
+### 附图
+
+![](git常用命令/2.png)
+
 **参考链接**
 
 [常用 Git 命令清单](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)</br>
@@ -462,4 +466,5 @@ git fetch origin tag [tag-name]
 [Git查看、删除、重命名远程分支和tag](http://zengrong.net/post/1746.htm)</br>
 [git常用命令之git push使用说明](http://blog.csdn.net/jo__yang/article/details/50972807)</br>
 [Git Stash用法](http://www.cppblog.com/deercoder/archive/2011/11/13/160007.aspx)</br>
-[git入门（5）-Git revert和git reset版本的回退](http://blog.csdn.net/codectq/article/details/50777934)
+[git入门（5）-Git revert和git reset版本的回退](http://blog.csdn.net/codectq/article/details/50777934)</br>
+[Git 常用命令](http://www.cnblogs.com/1-2-3/archive/2010/07/18/git-commands.html)
