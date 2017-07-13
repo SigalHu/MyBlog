@@ -38,6 +38,7 @@
     * [.gitignore设置跟踪忽略文件夹中文件](git/.gitignore设置跟踪忽略文件夹中文件.md)
     * [从github下载WDK项目的坑](git/从github下载WDK项目的坑.md)
     * [git常用命令](git/git常用命令.md)
+    * [git与svn的五个基本区别[转]](git/git与svn的五个基本区别[转].md)
 
 * Matlab
     * [VC调用Matlab生成的dll](Matlab/VC调用Matlab生成的dll.md)
