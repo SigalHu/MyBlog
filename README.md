@@ -16,6 +16,9 @@
     * [text段、data段、bss段、堆和栈](C++/text段、data段、bss段、堆和栈.md)
     * [相同程序不同进程下实现数据共享](C++/相同程序不同进程下实现数据共享.md)
 
+* C++ STL
+    * [emplace_back和push_back的区别[转]](C++_STL/emplace_back和push_back的区别[转].md)
+
 * 数据结构与算法
     * [字典序算法[转]](数据结构与算法/字典序算法[转].md)
 
