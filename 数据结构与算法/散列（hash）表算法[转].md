@@ -141,3 +141,235 @@ hash函数选择，针对字符串、整数、排列，具体相应的hash方法
 **扩展**
 
 d-left hashing中的d是多个的意思，我们先简化这个问题，看一看2-left hashing。2-left hashing指的是将一个哈希表分成长度相等的两半，分别叫做`T1`和`T2`，给`T1`和`T2`分别配备一个哈希函数，`h1`和`h2`。在存储一个新的`key`时，同时用两个哈希函数进行计算，得出两个地址`h1(key)`和`h2(key)`。这时需要检查`T1`中的`h1(key)`位置和`T2`中的`h2(key)`位置，哪一个位置已经存储的（有碰撞的）`key`比较多，然后将新`key`存储在负载少的位置。如果两边一样多，比如两个位置都为空或者都存储了一个`key`，就把新`key`存储在左边的`T1`子表中，2-left也由此而来。在查找一个`key`时，必须进行两次`hash`，同时查找两个位置。
+
+**问题实例（海量数据处理）**
+
+我们知道hash 表在海量数据处理中有着广泛的应用。
+
+题目：海量日志数据，提取出某日访问百度次数最多的那个IP。
+
+方案：IP的数目还是有限的，最多2^32个，所以可以考虑使用hash将IP直接存入内存，然后进行统计。
+
+### 最快的Hash表算法
+
+接下来，咱们来具体分析一下一个最快的Hash表算法。
+
+我们由一个简单的问题逐步入手：有一个庞大的字符串数组，然后给你一个单独的字符串，让你从这个数组中查找是否有这个字符串并找到它，你会怎么做？有一个方法最简单，老老实实从头查到尾，一个一个比较，直到找到为止，我想只要学过程序设计的人都能把这样一个程序作出来，但要是有程序员把这样的程序交给用户，我只能用无语来评价，或许它真的能工作，但...也只能如此了。
+
+最合适的算法自然是使用HashTable（哈希表），先介绍介绍其中的基本知识，所谓Hash，一般是一个整数，通过某种算法，可以把一个字符串"压缩" 成一个整数。当然，无论如何，一个32位整数是无法对应回一个字符串的，但在程序中，两个字符串计算出的Hash值相等的可能非常小，下面看看在MPQ中的Hash算法：
+
+**函数一**
+
+以下的函数生成一个长度为0x500（合10进制数：1280）的`cryptTable[0x500]`。
+```cpp
+void prepareCryptTable(){
+    unsigned long seed = 0x00100001, index1 = 0, index2 = 0, i;
+    for(index1 = 0; index1 < 0x100; index1++){
+        for(index2 = index1, i = 0; i < 5; i++, index2 += 0x100){
+            unsigned long temp1, temp2;
+            seed = (seed * 125 + 3) % 0x2AAAAB;
+            temp1 = (seed & 0xFFFF) << 0x10;
+            seed = (seed * 125 + 3) % 0x2AAAAB;
+            temp2 = seed & 0xFFFF;
+            cryptTable[index2] = temp1 | temp2;
+       }
+   }
+}
+```
+
+**函数二**
+
+以下函数计算`lpszFileName`字符串的hash值，其中`dwHashType`为hash的类型（在下面的函数三`GetHashTablePos`函数中调用此函数二），其可以取的值为0、1、2；该函数返回`lpszFileName`字符串的hash值。
+```cpp
+unsigned long HashString(char *lpszFileName, unsigned long dwHashType){
+    unsigned char *key  = (unsigned char *)lpszFileName;
+    unsigned long seed1 = 0x7FED7FED;
+    unsigned long seed2 = 0xEEEEEEEE;
+    int ch;
+    while(*key != 0){
+        ch = toupper(*key++);
+        seed1 = cryptTable[(dwHashType << 8) + ch] ^ (seed1 + seed2);
+        seed2 = ch + seed1 + seed2 + (seed2 << 5) + 3;
+    }
+    return seed1;
+}
+```
+Blizzard的这个算法是非常高效的，被称为"One-Way Hash"（A one-way hash is a an algorithm that is constructed in such a way that deriving the original string (set of strings, actually) is virtually impossible）。举个例子，字符串"unitneutralacritter.grp"通过这个算法得到的结果是`0xA26067F3`。
+
+是不是把第一个算法改进一下，改成逐个比较字符串的Hash值就可以了呢？答案是，远远不够。要想得到最快的算法，就不能进行逐个的比较，通常是构造一个哈希表(Hash Table)来解决问题。哈希表是一个大数组，这个数组的容量根据程序的要求来定义，例如1024，每一个Hash值通过取模运算 (mod) 对应到数组中的一个位置。这样，只要比较这个字符串的哈希值对应的位置有没有被占用，就可以得到最后的结果了，想想这是什么速度？是的，是最快的O(1)。
+```cpp
+typedef struct
+{
+    int nHashA;
+    int nHashB;
+    char bExists;
+    ......
+} SOMESTRUCTRUE;
+```
+
+**函数三**
+
+下述函数为在Hash表中查找是否存在目标字符串，有则返回要查找字符串的Hash值，无则，`return -1`。
+```cpp
+int GetHashTablePos(char *lpszString, SOMESTRUCTURE *lpTable){
+//lpszString要在Hash表中查找的字符串，lpTable为存储字符串Hash值的Hash表。
+    int nHash = HashString(lpszString);  //调用上述函数二，返回要查找字符串lpszString的Hash值。
+    int nHashPos = nHash % nTableSize;
+
+    if (lpTable[nHashPos].bExists && !strcmp(lpTable[nHashPos].pString, lpszString)){
+    //如果找到的Hash值在表中存在，且要查找的字符串与表中对应位置的字符串相同
+        return nHashPos;    //则返回上述调用函数二后，找到的Hash值
+    }
+    else
+        return -1;
+}
+```
+看到此，我想大家都在想一个很严重的问题：“如果两个字符串在哈希表中对应的位置相同怎么办？”，毕竟一个数组容量是有限的，这种可能性很大。解决该问题的方法很多，我首先想到的就是用“链表”，感谢大学里学的数据结构教会了这个百试百灵的法宝，我遇到的很多算法都可以转化成链表来解决，只要在哈希表的每个入口挂一个链表，保存所有对应的字符串就OK了。事情到此似乎有了完美的结局，如果是把问题独自交给我解决，此时我可能就要开始定义数据结构然后写代码了。
+
+然而Blizzard的程序员使用的方法则是更精妙的方法。基本原理就是：他们在哈希表中不是用一个哈希值而是用三个哈希值来校验字符串。
+
+MPQ使用文件名哈希表来跟踪内部的所有文件。但是这个表的格式与正常的哈希表有一些不同。首先，它没有使用哈希作为下标，把实际的文件名存储在表中用于验证，实际上它根本就没有存储文件名。而是使用了3种不同的哈希：一个用于哈希表的下标，两个用于验证。这两个验证哈希替代了实际文件名。
+
+当然了，这样仍然会出现2个不同的文件名哈希到3个同样的哈希。但是这种情况发生的概率平均是：1:18889465931478580854784，这个概率对于任何人来说应该都是足够小的。现在再回到数据结构上，Blizzard使用的哈希表没有使用链表，而采用"顺延"的方式来解决问题。
+
+**函数四**
+
+`lpszString`为要在hash表中查找的字符串；`lpTable`为存储字符串hash值的hash表；`nTableSize`为hash表的长度：
+```cpp
+int GetHashTablePos(char *lpszString, MPQHASHTABLE *lpTable, int nTableSize){
+    const int  HASH_OFFSET = 0, HASH_A = 1, HASH_B = 2;
+    int  nHash = HashString(lpszString, HASH_OFFSET);
+    int  nHashA = HashString(lpszString, HASH_A);
+    int  nHashB = HashString(lpszString, HASH_B);
+    int  nHashStart = nHash % nTableSize;
+    int  nHashPos = nHashStart;
+
+    while(lpTable[nHashPos].bExists){
+     /* 如果仅仅是判断在该表中时候存在这个字符串，就比较这两个hash值就可以了，不用对结构体中的字符串进行比较。这样会加快运行的速度？减少hash表占用的空间？这种方法一般应用在什么场合？*/
+       if(lpTable[nHashPos].nHashA == nHashA && lpTable[nHashPos].nHashB == nHashB){
+            return nHashPos;
+       }else{
+            nHashPos = (nHashPos + 1) % nTableSize;
+       }
+       if (nHashPos == nHashStart) break;
+    }
+    return -1;
+}
+```
+上述程序解释：
+
+1. 计算出字符串的三个哈希值（一个用来确定位置，另外两个用来校验)
+2. 察看哈希表中的这个位置
+3. 哈希表中这个位置为空吗？如果为空，则肯定该字符串不存在，返回-1
+4. 如果存在，则检查其他两个哈希值是否也匹配，如果匹配，则表示找到了该字符串，返回其Hash值
+5. 移到下一个位置，如果已经移到了表的末尾，则反绕到表的开始位置起继续查询
+6. 看看是不是又回到了原来的位置，如果是，则返回没找到
+7. 回到3
+
+---
+
+**补充1：一个简单的hash函数**
+
+```cpp
+/*key为一个字符串，nTableLength为哈希表的长度
+*该函数得到的hash值分布比较均匀*/
+unsigned long getHashIndex(const char *key, int nTableLength){
+    unsigned long nHash = 0;
+    while (*key){
+        nHash = (nHash<<5) + nHash + *key++;
+    }
+    return (nHash % nTableLength);
+}
+```
+**补充2：一个完整测试程序**
+
+哈希表的数组是定长的，如果太大，则浪费，如果太小，体现不出效率。合适的数组大小是哈希表的性能的关键。哈希表的尺寸最好是一个质数。当然，根据不同的数据量，会有不同的哈希表的大小。对于数据量时多时少的应用，最好的设计是使用动态可变尺寸的哈希表，那么如果你发现哈希表尺寸太小了，比如其中的元素是哈希表尺寸的2倍时，我们就需要扩大哈希表尺寸，一般是扩大一倍。
+
+下面是哈希表尺寸大小的可能取值：
+```
+       17,          37,          79,          163,          331,
+      673,        1361,        2729,         5471,        10949,
+    21911,       43853,       87719,       175447,       350899,
+   701819,     1403641,     2807303,      5614657,     11229331,
+ 22458671,    44917381,    89834777,    179669557,    359339171,
+718678369,  1437356741,  2147483647
+```
+以下为该程序的完整源码，已在Linux下测试通过：
+```cpp
+#include <stdio.h>
+#include <ctype.h>     //多谢citylove指正。
+//crytTable[]里面保存的是HashString函数里面将会用到的一些数据，在prepareCryptTable
+//函数里面初始化
+unsigned long cryptTable[0x500];
+
+//以下的函数生成一个长度为0x500（合10进制数：1280）的cryptTable[0x500]
+void prepareCryptTable(){
+    unsigned long seed = 0x00100001, index1 = 0, index2 = 0, i;
+    for(index1 = 0; index1 < 0x100; index1++){
+        for(index2 = index1, i = 0; i < 5; i++, index2 += 0x100)  {
+            unsigned long temp1, temp2;
+
+            seed = (seed * 125 + 3) % 0x2AAAAB;
+            temp1 = (seed & 0xFFFF) << 0x10;
+
+            seed = (seed * 125 + 3) % 0x2AAAAB;
+            temp2 = seed & 0xFFFF;
+
+            cryptTable[index2] = temp1 | temp2;
+       }
+   }
+}
+
+//以下函数计算lpszFileName 字符串的hash值，其中dwHashType 为hash的类型，
+//在下面GetHashTablePos函数里面调用本函数，其可以取的值为0、1、2；该函数
+//返回lpszFileName 字符串的hash值；
+unsigned long HashString(char *lpszFileName, unsigned long dwHashType){
+    unsigned char *key  = (unsigned char *)lpszFileName;
+    unsigned long seed1 = 0x7FED7FED;
+    unsigned long seed2 = 0xEEEEEEEE;
+    int ch;
+
+    while(*key != 0){
+        ch = toupper(*key++);
+
+        seed1 = cryptTable[(dwHashType << 8) + ch] ^ (seed1 + seed2);
+        seed2 = ch + seed1 + seed2 + (seed2 << 5) + 3;
+    }
+    return seed1;
+}
+
+//在main中测试argv[1]的三个hash值：
+//./hash  "arr/units.dat"
+//./hash  "unit/neutral/acritter.grp"
+int main(int argc, char **argv){
+    unsigned long ulHashValue;
+    int i = 0;
+
+    if (argc != 2){
+        printf("please input two arguments/n");
+        return -1;
+    }
+
+     /*初始化数组：crytTable[0x500]*/
+     prepareCryptTable();
+
+     /*打印数组crytTable[0x500]里面的值*/
+     for (;i < 0x500;i++){
+         if (i % 10 == 0){
+             printf("/n");
+         }
+         printf("%-12X", cryptTable[i]);
+     }
+
+     ulHashValue = HashString(argv[1], 0);
+     printf("/n----%X ----/n", ulHashValue);
+
+     ulHashValue = HashString(argv[1], 1);
+     printf("----%X ----/n", ulHashValue);
+
+     ulHashValue = HashString(argv[1], 2);
+     printf("----%X ----/n", ulHashValue);  
+
+     return 0;
+}
+```
