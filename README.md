@@ -14,6 +14,7 @@
     * [C++中的struct与class](C++/C++中的struct与class.md)
     * [类中成员函数的重载、覆盖与隐藏[转]](C++/类中成员函数的重载、覆盖与隐藏[转].md)
     * [text段、data段、bss段、堆和栈](C++/text段、data段、bss段、堆和栈.md)
+    * [C++之lambda表达式](C++/C++之lambda表达式.md)
     * [相同程序不同进程下实现数据共享](C++/相同程序不同进程下实现数据共享.md)
 
 * C++ STL
