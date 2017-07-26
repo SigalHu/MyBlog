@@ -54,6 +54,9 @@
     * [git常用命令](git/git常用命令.md)
     * [git与svn的五个基本区别[转]](git/git与svn的五个基本区别[转].md)
 
+* IDE
+    * [Atom插件Markdown Preview Enhanced的字体大小修改](IDE/Atom插件Markdown%20Preview%20Enhanced的字体大小修改.md)
+
 * Matlab
     * [VC调用Matlab生成的dll](Matlab/VC调用Matlab生成的dll.md)
     * [VC调用Matlab生成的c](Matlab/VC调用Matlab生成的c.md)
