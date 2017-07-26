@@ -32,9 +32,6 @@
     * [TCP协议](Internet/TCP协议.md)
     * [HTTP协议[转]](Internet/HTTP协议[转].md)
 
-* Linux
-    * [vim常用命令](Linux/vim常用命令.md)
-
 * Windows
     * [不同进程通过共享内存实现数据共享](Windows/不同进程通过共享内存实现数据共享.md)
 
@@ -56,6 +53,7 @@
     * [git与svn的五个基本区别[转]](git/git与svn的五个基本区别[转].md)
 
 * IDE
+    * [vim常用命令](IDE/vim常用命令.md)
     * [Atom插件Markdown Preview Enhanced的字体大小修改](IDE/Atom插件Markdown%20Preview%20Enhanced的字体大小修改.md)
 
 * Matlab
