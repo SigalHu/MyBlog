@@ -34,6 +34,9 @@ $ git config -e [--global]
 # 设置提交代码时的用户信息
 $ git config [--global] user.name "[name]"
 $ git config [--global] user.email "[email address]"
+
+# 设置大小写敏感
+$ git config core.ignorecase false
 ```
 
 ### 暂存区操作
