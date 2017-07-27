@@ -2,7 +2,7 @@
 
 **注意：** 若遇到映射`inoremap <c-h> <left>`导致`<BS>`键无法删除，可参考[《关于vim在插入模式中Backspace键无法删除的问题[转]》](关于vim在插入模式中Backspace键无法删除的问题[转].md)解决。
 
-**1. 下载Vim配置和插件安装附件**
+**1. 下载vim配置和插件安装附件**
 
 ```bash
 git clone https://github.com/13570248114/vim_for_linux
