@@ -54,6 +54,7 @@
 
 * IDE
     * [vim常用命令](IDE/vim常用命令.md)
+    * [超强vim配置文件[转]](IDE/超强vim配置文件[转].md)
     * [Atom插件Markdown Preview Enhanced的字体大小修改](IDE/Atom插件Markdown%20Preview%20Enhanced的字体大小修改.md)
 
 * Matlab
