@@ -16,8 +16,7 @@
     * [类中成员函数的重载、覆盖与隐藏[转]](C++/类中成员函数的重载、覆盖与隐藏[转].md)
     * [text段、data段、bss段、堆和栈](C++/text段、data段、bss段、堆和栈.md)
     * [C++之lambda表达式](C++/C++之lambda表达式.md)
-    * [memcpy与memmove区别和实现](C++/memcpy与memmove区别和实现)
-    * [相同程序不同进程下实现数据共享](C++/相同程序不同进程下实现数据共享.md)
+    * [memcpy与memmove区别和实现](C++/memcpy与memmove区别和实现.md)
 
 * C++ STL
     * [emplace_back和push_back的区别[转]](C++%20STL/emplace_back和push_back的区别[转].md)
@@ -36,6 +35,7 @@
 
 * Windows
     * [不同进程通过共享内存实现数据共享](Windows/不同进程通过共享内存实现数据共享.md)
+    * [相同程序不同进程下实现数据共享](Windows/相同程序不同进程下实现数据共享.md)
 
 * 读书笔记
     * [《C陷阱与缺陷》读书笔记](读书笔记/《C陷阱与缺陷》读书笔记.md)
