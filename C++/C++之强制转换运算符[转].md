@@ -4,10 +4,10 @@
 
 有几种特定于 C++ 语言的转换运算符。 这些运算符用于删除旧式 C 语言转换中的一些多义性和危险继承。 这些运算符是：
 
-* **dynamic_cast：**用于多态类型的转换
-* **static_cast：**用于非多态类型的转换
-* **const_cast：**用于删除const、volatile和__unaligned特性
-* **reinterpret_cast：**用于位的简单重新解释
+* **dynamic_cast：** 用于多态类型的转换
+* **static_cast：** 用于非多态类型的转换
+* **const_cast：** 用于删除const、volatile和__unaligned特性
+* **reinterpret_cast：** 用于位的简单重新解释
 
 在万不得已时使用 const_cast 和 reinterpret_cast，因为这些运算符与旧的样式转换带来的危险相同。 但是，若要完全替换旧的样式转换，仍必须使用它们。
 
