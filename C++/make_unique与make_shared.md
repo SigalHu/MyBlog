@@ -1,4 +1,4 @@
-### make_unique
+### make_unique的实现
 
 `std::make_shared`是C\+\+11的一部分，但是`std::make_unique`很可惜不是。它是在C\+\+14里加入标准库的，但我们可以自己实现`make_unique`方法。
 ```cpp
@@ -22,9 +22,7 @@ template<class T,class... Args>
 typename enable_if<extent<T>::value != 0,void>::type
 make_unique(Args&&...) = delete;
 ```
-**部分代码说明**
-
-**1. enable_if的作用**
+**enable_if的作用**
 ```cpp
 // Primary template.
 /// Define a member typedef @c type only if a boolean constant is true.
@@ -46,10 +44,6 @@ template<typename _Tp>
 **std::forward的作用**
 
 `std::forward`在这里的作用是实现参数的完美转发，具体见[《move和forward源码分析[转]》](move和forward源码分析[转].md)。
-
-### make_shared
-
-
 
 ### make函数的好处
 
@@ -99,7 +93,19 @@ F(std::make_shared<Lhs>("foo"), std::make_shared<Rhs>("bar"));
 
 ### make函数的不足
 
+1. `make`函数都不允许使用定制删除器，但是`std::unique_ptr`和`std::shared_ptr`的构造函数都可以。
+2. `make`函数不能完美传递一个`initializer_list`。
+替代方案：
+```cpp
+// initializer_list<int> aa = {1,2,3}; // 或者
+auto aa = {1,2,3};
+auto a = make_shared<vector<int>>(aa);
+// auto b = make_shared<vector<int>>({1,2,3}); // 错误
+```
+3. 虽然使用`std::make_shared`可以减少了内存分配的次数，提高效率，但由于控制块与对象都在同一块动态分配的内存上，所以当对象的引用计数变为0，对象被销毁（析构函数被调），该对象所占内存仍未释放，直到控制块同样也被销毁，内存才会释放。
+
 **参考链接**
 
-[c++11 条款21：尽量使用std::make_unique和std::make_shared而不直接使用new](http://blog.csdn.net/coolmeme/article/details/43405155)
-[Why Make_shared ?](http://bitdewy.github.io/blog/2014/01/12/why-make-shared/)
+[c++11 条款21：尽量使用std::make_unique和std::make_shared而不直接使用new](http://blog.csdn.net/coolmeme/article/details/43405155)</br>
+[Why Make_shared ?](http://bitdewy.github.io/blog/2014/01/12/why-make-shared/)</br>
+[通过new和make_shared构造shared_ptr的性能差异](http://www.cnblogs.com/egmkang/archive/2013/04/28/3049102.html)
