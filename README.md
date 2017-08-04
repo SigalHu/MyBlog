@@ -17,6 +17,7 @@
     * [text段、data段、bss段、堆和栈](C++/text段、data段、bss段、堆和栈.md)
     * [C++之lambda表达式](C++/C++之lambda表达式.md)
     * [memcpy与memmove区别和实现](C++/memcpy与memmove区别和实现.md)
+    * [move和forward源码分析[转]](C++/move和forward源码分析[转].md)
 
 * C++ STL
     * [emplace_back和push_back的区别[转]](C++%20STL/emplace_back和push_back的区别[转].md)
