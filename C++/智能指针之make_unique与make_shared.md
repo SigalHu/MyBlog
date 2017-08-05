@@ -51,11 +51,11 @@ template<typename _Tp>
 
 `shared_ptr`需要维护引用计数的信息。如果你通过使用原始的`new`表达式分配对象，然后传递给`shared_ptr`（也就是使用`shared_ptr`的构造函数）的话，`shared_ptr`的实现没有办法选择，而只能单独的分配控制块：
 
-![](make_unique与make_shared/1.png)
+![](智能指针之make_unique与make_shared/1.png)
 
 如果选择使用`make_shared`的话，情况就会变成下面这样：
 
-![](make_unique与make_shared/2.png)
+![](智能指针之make_unique与make_shared/2.png)
 
 内存分配的动作，可以一次性完成。这减少了内存分配的次数，而内存分配是代价很高的操作。
 
