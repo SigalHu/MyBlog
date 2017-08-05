@@ -102,10 +102,38 @@ auto aa = {1,2,3};
 auto a = make_shared<vector<int>>(aa);
 // auto b = make_shared<vector<int>>({1,2,3}); // 错误
 ```
-3. 虽然使用`std::make_shared`可以减少了内存分配的次数，提高效率，但由于控制块与对象都在同一块动态分配的内存上，所以当对象的引用计数变为0，对象被销毁（析构函数被调），该对象所占内存仍未释放，直到控制块同样也被销毁，内存才会释放。
+3. 对象的内存可能无法及时回收
+
+虽然使用`std::make_shared`可以减少了内存分配的次数，提高效率，但由于控制块与对象都在同一块动态分配的内存上，所以当对象的引用计数变为0，对象被销毁（析构函数被调）后，该对象所占内存仍未释放，直到控制块同样也被销毁，内存才会释放。
+
+我们知道，在控制块中包含两个计数：`shared count`和`weak count`，分别表示`std::shared_ptr`和`std::weak_ptr`对对象的引用计数，只有当`shared count`和`weak count`都为0时，控制块才会被销毁。
+
+换句话说，只要有`std::weak_ptr`指向一个控制块（`weak count`大于0），那控制块就一定存在。只要控制块存在，包含它的内存必定存在。通过`std::shared_ptr`的`make`函数分配的内存在最后一个`std::shared_ptr`和最后一个`std::weak_ptr`被销毁前不能被释放。
+
+4. 构造函数是保护或私有时，无法使用`make_shared`。
+替代方案：
+```cpp
+class A {
+public:
+    static std::shared_ptr<A> create() {
+        return std::make_shared<A>();
+    }
+protected:
+    A() {}
+    A(const A &) = delete;
+    const A &operator=(const A &) = delete;
+};
+
+std::shared_ptr<A> foo() {
+    return A::create();
+}
+```
 
 **参考链接**
 
 [c++11 条款21：尽量使用std::make_unique和std::make_shared而不直接使用new](http://blog.csdn.net/coolmeme/article/details/43405155)</br>
 [Why Make_shared ?](http://bitdewy.github.io/blog/2014/01/12/why-make-shared/)</br>
-[通过new和make_shared构造shared_ptr的性能差异](http://www.cnblogs.com/egmkang/archive/2013/04/28/3049102.html)
+[通过new和make_shared构造shared_ptr的性能差异](http://www.cnblogs.com/egmkang/archive/2013/04/28/3049102.html)</br>
+[How does weak_ptr work?](https://stackoverflow.com/questions/5671241/how-does-weak-ptr-work)</br>
+[shared_ptr线程安全性分析](http://blog.csdn.net/jiangfuqiang/article/details/8292906)</br>
+[How do I call ::std::make_shared on a class with only protected or private constructors?](https://stackoverflow.com/questions/8147027/how-do-i-call-stdmake-shared-on-a-class-with-only-protected-or-private-const?rq=1)

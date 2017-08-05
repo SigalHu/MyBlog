@@ -18,6 +18,7 @@
     * [C++之lambda表达式](C++/C++之lambda表达式.md)
     * [memcpy与memmove区别和实现](C++/memcpy与memmove区别和实现.md)
     * [move和forward源码分析[转]](C++/move和forward源码分析[转].md)
+    * [make_unique与make_shared](C++/make_unique与make_shared.md)
 
 * C++ STL
     * [emplace_back和push_back的区别[转]](C++%20STL/emplace_back和push_back的区别[转].md)
