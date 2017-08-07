@@ -15,6 +15,7 @@
     * [C++之POD数据类型](C++/C++之POD数据类型.md)
     * [C++中的struct与class](C++/C++中的struct与class.md)
     * [类中成员函数的重载、覆盖与隐藏[转]](C++/类中成员函数的重载、覆盖与隐藏[转].md)
+    * [C++之RAII机制[转]](C++/C++之RAII机制[转].md)
     * [text段、data段、bss段、堆和栈](C++/text段、data段、bss段、堆和栈.md)
     * [C++之lambda表达式](C++/C++之lambda表达式.md)
     * [memcpy与memmove区别和实现](C++/memcpy与memmove区别和实现.md)
