@@ -83,13 +83,13 @@ public:
     // 另外的线程却调用了release函数，清零use_count_并释放了指向的对象
     bool add_ref_lock() {
         for(;;) {
-            long tmp = static_cast< long const volatile& >(use_count_);
+            long tmp = static_cast<long const volatile&>(use_count_);
             if(tmp == 0) return false;
-            if(_InterlockedCompareExchange(&use_count_, tmp + 1, tmp) == tmp)return true;
+            if(_InterlockedCompareExchange(&use_count_, tmp + 1, tmp) == tmp) return true;
         }
     }
     void release(){
-        if( _InterlockedDecrement( &use_count_ ) == 0 ) {
+        if(_InterlockedDecrement(&use_count_) == 0) {
             // use_count_从1变成0的时候，
             // 1. 释放对象
             // 2. 对weak_count_执行一次递减操作。这是因为在初始化的时候（use_count_从0变1时），weak_count初始值为1
@@ -111,4 +111,50 @@ public:
         return static_cast<long const volatile &>(use_count_);
     }
 };
+```
+代码中的注释已经说明了一些问题，这里再重复一点：`use_count_`字段等于当前`shared_ptr`对象的数量，`weak_count_`字段等于当前`weak_ptr`对象的数量加1。
+
+首先不考虑`weak_ptr`的情况。根据对`shared_ptr`类的代码分析（代码没有列出来，但很容易找到），`shared_ptr`之间的复制都是调用`add_ref_copy`和`release`函数进行的。假设两个线程分别对`SP1`和`SP2`进行操作，操作的过程无非是以下三种情况：
+
+1. `SP1`和`SP2`都递增引用计数，即`add_ref_copy`被并发调用，也就是两个`_InterlockedIncrement(&use_count_)`并发执行，这是线程安全的。
+2. `SP1`和`SP2`都递减引用计数，即`release`被并发调用，也就是`_InterlockedDecrement(&use_count_)`并发执行，这也是线程安全的。只不过后执行的线程负责删除对象。
+3. `SP1`递增引用计数，调用`add_ref_copy`；`SP2`递减引用计数，调用`release`。由于`SP1`的存在，`SP2`的`release`操作无论如何都不会导致`use_count_`变为零，也就是说`release`中`if`语句的`body`永远不会被执行。因此，这种情况就化简为`_InterlockedIncrement(&use_count_)`和`_InterlockedDecrement(&use_count_)`的并发执行，仍然是线程安全的。
+
+然后考虑`weak_ptr`。如果是`weak_ptr`之间的操作，或者从`shared_ptr`构造`weak_ptr`，都不涉及到`use_count_`的操作，只需要调用`weak_add_ref`和`weak_release`来操作`weak_count_`。与上面的分析相同，`_InterlockedIncrement`和`_InterlockedDecrement`保证了`weak_add_ref`和`weak_release`并发操作的线程安全性。
+
+但如果存在从`weak_ptr`构造`shared_ptr`的操作，则需要考虑在构造`weak_ptr`的过程中，被管理的对象已经被其他线程被释放的情况。如果从`weak_ptr`构造`shared_ptr`仍然是通过`add_ref_copy`函数完成的，则可能发生以下错误情况：
+
+|  | 线程1，从`weak_ptr`创建`shared_ptr` | 线程2，释放目前唯一存在的`shared_ptr` |
+| -- | -- | -- |
+| 1 | 判断`use_count_`大于0，等待执行`add_ref_copy` | |
+| 2 | | 调用`release`，`use_count--`。发现`use_count`为0，删除被管理的对象 |
+| 3 | 开始执行`add_ref_copy`，导致`use_count`递增。发生错误，`use_count==1`，但是对象已经被删除了 | |
+
+我们自然会想，线程1在第三行结束后，再判断一次`use_count`是否为1，如果是1，认为对象已经删除，判断失败不就可以了吗。其实是行不通的，下面是一个反例。
+
+|  | 线程1，从`weak_ptr`创建`shared_ptr` | 线程2，释放目前唯一存在的`shared_ptr` | 线程3，从`weak_ptr`创建`shared_ptr` |
+| -- | -- | -- | -- |
+| 1 | 判断`use_count_`大于0，等待执行`add_ref_copy` | | |
+| 2 | | | 判断`use_count_`大于0，等待执行`add_ref_copy` |
+| 3 | | 调用`release`，`use_count--`。发现`use_count`为0，删除被管理的对象 | |
+| 4 | 开始执行`add_ref_copy`，导致`use_count`递增 | | |
+| 5 | | | 执行`add_ref_copy`，导致`use_count`递增 |
+| 6 | 发现`use_count_ != 1`，判断执行成功。发生错误，`use_count==2`，但是对象已经被删除了 | | 发现`use_count_ != 1`，判断执行成功。发生错误，`use_count==2`，但是对象已经被删除了 |
+
+实际上，boost从`weak_ptr`构造`shared_ptr`不是调用`add_ref_copy`，而是调用`add_ref_lock`函数。`add_ref_lock`是典型的无锁修改共享变量的代码，下面再把它的代码复制一遍，并添加证明注释。
+```cpp
+bool add_ref_lock() {
+  for(;;) {
+    // 第一步，记录下use_count_
+    long tmp = static_cast<long const volatile&>(use_count_);
+    // 第二步，如果已经被别的线程抢先清0了，则被管理的对象已经或者将要被释放，返回false
+    if(tmp == 0) return false;
+    // 第三步，如果if条件执行成功，
+    // 说明在修改use_count_之前,use_count仍然是tmp，大于0
+    // 也就是说use_count_在第一步和第三步之间，从来没有变为0过
+    // 这是因为use_count一旦变为0，就不可能再次累加为大于0
+    // 因此，第一步和第三步之间，被管理的对象不可能被释放，返回true。
+    if(_InterlockedCompareExchange(&use_count_, tmp + 1, tmp) == tmp) return true;
+  }
+}
 ```
