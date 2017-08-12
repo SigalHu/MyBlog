@@ -48,7 +48,7 @@ weak_ptr<SomeObject> WP1=SP1;
 
 ### 引用计数类`sp_counted_base`
 
-幸运的是，`sp_counted_base`的代码量很小，下面全文列出来，并添加有注释。
+`sp_counted_base`的代码量很小，下面全文列出来，并添加有注释。
 ```cpp
 class sp_counted_base {
 private:
@@ -158,3 +158,21 @@ bool add_ref_lock() {
   }
 }
 ```
+在上面的注释中，用到了一个没有被证明的结论，“`use_count`一旦变为0，就不可能再次累加为大于0”。下面四条可以证明它：
+
+1. `use_count_`是`sp_counted_base`类的`private`对象，`sp_counted_base`也没有友元函数，因此`use_count_`不会被对象外的代码修改
+2. 成员函数`add_ref_copy`可以递增`use_count_`，但是所有对`add_ref_copy`函数的调用都是通过一个`shared_ptr`对象执行的。既然存在`shared_ptr`对象，`use_count`在递增之前一定不是0
+3. 成员函数`add_ref_lock`可以递增`use_count_`，但正如`add_ref_lock`代码所示，执行第三步的时候，`tmp`都是大于0的，因此`add_ref_lock`不会使`use_count_`从0递增到1
+4. 其它成员函数从来不会递增`use_count_`
+
+至此，我们可以放下心来，只要`add_ref_lock`返回`true`，递增引用计数的行为就是成功的。因此从`weak_ptr`构造`shared_ptr`的行为也是完全确定的，要么`add_ref_lock`返回`true`，构造成功，要么`add_ref_lock`返回`false`，构造失败。
+
+综上所述，多线程通过不同的`shared_ptr`或者`weak_ptr`对象并发修改同一个引用计数对象`sp_counted_base`是线程安全的。而`sp_counted_base`对象是这些智能指针唯一操作的共享内存区，因此最终的结果就是线程安全的。
+
+### 总结
+
+正如boost文档所宣称的，boost为`shared_ptr`提供了与内置类型同级别的线程安全性。这包括：
+
+1. 同一个`shared_ptr`对象可以被多线程同时读取。
+2. 不同的`shared_ptr`对象可以被多线程同时修改。
+3. 同一个`shared_ptr`对象不能被多线程直接修改，但可以通过原子函数完成。

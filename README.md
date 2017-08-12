@@ -23,6 +23,7 @@
     * [move和forward源码分析[转]](C++/move和forward源码分析[转].md)
     * [智能指针之make_unique与make_shared](C++/智能指针之make_unique与make_shared.md)
     * [使用智能指针的注意事项](C++/使用智能指针的注意事项.md)
+    * [shared_ptr线程安全性分析[转]](C++/shared_ptr线程安全性分析[转].md)
 
 * C++ STL
     * [emplace_back和push_back的区别[转]](C++%20STL/emplace_back和push_back的区别[转].md)
