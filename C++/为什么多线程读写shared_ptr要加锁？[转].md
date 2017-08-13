@@ -37,3 +37,51 @@
 步骤1和步骤2的先后顺序跟实现相关（因此步骤2里没有画出`y.ptr`的指向），我见过的都是先1后2。
 
 既然`y=x`有两个步骤，如果没有`mutex`保护，那么在多线程里就有race condition。
+
+### 多线程无保护读写`shared_ptr`可能出现的race condition
+
+考虑一个简单的场景，有3个`shared_ptr<Foo>`对象`x,g,n`：
+```cpp
+shared_ptr<Foo> g(new Foo); // 线程之间共享的 shared_ptr
+shared_ptr<Foo> x;          // 线程 A 的局部变量
+shared_ptr<Foo> n(new Foo); // 线程 B 的局部变量
+```
+![](为什么多线程读写shared_ptr要加锁？[转]/6.png)
+
+线程A执行`x = g;`（即read g），以下完成了步骤1，还没来及执行步骤2。这时切换到了B线程。
+
+![](为什么多线程读写shared_ptr要加锁？[转]/7.png)
+
+同时线程B执行`g = n;`（即write g），两个步骤一起完成了。
+
+先是步骤1：
+
+![](为什么多线程读写shared_ptr要加锁？[转]/8.png)
+
+再是步骤2：
+
+![](为什么多线程读写shared_ptr要加锁？[转]/9.png)
+
+这是`Foo1`对象已经销毁，`x.ptr`成了空悬指针！
+
+最后回到线程A，完成步骤2：
+
+![](为什么多线程读写shared_ptr要加锁？[转]/10.png)
+
+多线程无保护地读写`g`，造成了`x`是空悬指针的后果。这正是多线程读写同一个`shared_ptr`必须加锁的原因。
+
+当然，race condition远不止这一种，其他线程交织（interweaving）有可能会造成其他错误。
+
+### 其他
+
+**1. 为什么`ref_count`也有指向`Foo`的指针？**
+
+`shared_ptr<Foo> sp(new Foo)`在构造`sp`的时候捕获了`Foo`的析构行为。实际上`shared_ptr.ptr`和`ref_count.ptr`可以是不同的类型（只要它们之间存在隐式转换），这是`shared_ptr`的一大功能。分3点来说：
+
+1）无需虚析构；假设`Bar`是`Foo`的基类，但是`Bar`和`Foo`都没有虚析构。
+```cpp
+shared_ptr<Foo> sp1(new Foo); // ref_count.ptr的类型是 Foo*
+shared_ptr<Bar> sp2 = sp1; // 可以赋值，自动向上转型（up-cast）
+sp1.reset(); // 这时Foo对象的引用计数降为1
+```
+此后`sp2`仍然能安全地管理`Foo`对象的生命期，并安全完整地释放`Foo`，因为其`ref_count`记住了`Foo`的实际类型。
