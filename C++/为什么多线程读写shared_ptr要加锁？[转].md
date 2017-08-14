@@ -78,10 +78,34 @@ shared_ptr<Foo> n(new Foo); // 线程 B 的局部变量
 
 `shared_ptr<Foo> sp(new Foo)`在构造`sp`的时候捕获了`Foo`的析构行为。实际上`shared_ptr.ptr`和`ref_count.ptr`可以是不同的类型（只要它们之间存在隐式转换），这是`shared_ptr`的一大功能。分3点来说：
 
-1）无需虚析构；假设`Bar`是`Foo`的基类，但是`Bar`和`Foo`都没有虚析构。
+1）无需虚析构。假设`Bar`是`Foo`的基类，但是`Bar`和`Foo`都没有虚析构。
 ```cpp
-shared_ptr<Foo> sp1(new Foo); // ref_count.ptr的类型是 Foo*
+shared_ptr<Foo> sp1(new Foo); // ref_count.ptr的类型是Foo*
 shared_ptr<Bar> sp2 = sp1; // 可以赋值，自动向上转型（up-cast）
 sp1.reset(); // 这时Foo对象的引用计数降为1
 ```
 此后`sp2`仍然能安全地管理`Foo`对象的生命期，并安全完整地释放`Foo`，因为其`ref_count`记住了`Foo`的实际类型。
+
+2）`shared_ptr<void>`可以指向并安全地管理（析构或防止析构）任何对象。
+```cpp
+shared_ptr<Foo> sp1(new Foo); // ref_count.ptr的类型是Foo*
+shared_ptr<void> sp2 = sp1; // 可以赋值，Foo*向void*自动转型
+sp1.reset(); // 这时Foo对象的引用计数降为1
+```
+此后`sp2`仍然能安全地管理`Foo`对象的生命期，并安全完整地释放`Foo`，不会出现`delete void*`的情况，因为`delete`的是`ref_count.ptr`，不是`sp2.ptr`。
+
+3）多继承。假设`Bar`是`Foo`的多个基类之一，那么：
+```cpp
+shared_ptr<Foo> sp1(new Foo);
+shared_ptr<Bar> sp2 = sp1; // 这时sp1.ptr和sp2.ptr可能指向不同的地址，因为Bar subobject在Foo object中的offset可能不为0。
+sp1.reset(); // 此时Foo对象的引用计数降为1
+```
+但是`sp2`仍然能安全地管理`Foo`对象的生命期，并安全完整地释放`Foo`，因为`delete`的不是`Bar*`，而是原来的`Foo*`。换句话说，`sp2.ptr`和`ref_count.ptr`可能具有不同的值（当然它们的类型也不同）。
+
+**2. 为什么要尽量使用`make_shared()`？**
+
+为了节省一次内存分配，原来`shared_ptr<Foo> x(new Foo);`需要为`Foo`和`ref_count`各分配一次内存，现在用`make_shared()`的话，可以一次分配一块足够大的内存，供`Foo`和`ref_count`对象容身。数据结构是：
+
+![](为什么多线程读写shared_ptr要加锁？[转]/11.png)
+
+不过`Foo`的构造函数参数要传给`make_shared()`，后者再传给`Foo::Foo()`，这只有在C\+\+11里通过perfect forwarding才能完美解决。
