@@ -196,7 +196,7 @@ unsigned long HashString(char *lpszFileName, unsigned long dwHashType){
 ```
 Blizzard的这个算法是非常高效的，被称为"One-Way Hash"（A one-way hash is a an algorithm that is constructed in such a way that deriving the original string (set of strings, actually) is virtually impossible）。举个例子，字符串"unitneutralacritter.grp"通过这个算法得到的结果是`0xA26067F3`。
 
-是不是把第一个算法改进一下，改成逐个比较字符串的Hash值就可以了呢？答案是，远远不够。要想得到最快的算法，就不能进行逐个的比较，通常是构造一个哈希表(Hash Table)来解决问题。哈希表是一个大数组，这个数组的容量根据程序的要求来定义，例如1024，每一个Hash值通过取模运算 (mod) 对应到数组中的一个位置。这样，只要比较这个字符串的哈希值对应的位置有没有被占用，就可以得到最后的结果了，想想这是什么速度？是的，是最快的O(1)。
+是不是把第一个算法改进一下，改成逐个比较字符串的Hash值就可以了呢？答案是，远远不够。要想得到最快的算法，就不能进行逐个的比较，通常是构造一个哈希表（Hash Table）来解决问题。哈希表是一个大数组，这个数组的容量根据程序的要求来定义，例如1024，每一个Hash值通过取模运算（mod）对应到数组中的一个位置。这样，只要比较这个字符串的哈希值对应的位置有没有被占用，就可以得到最后的结果了，想想这是什么速度？是的，是最快的$O(1)$。
 ```cpp
 typedef struct
 {
@@ -368,7 +368,7 @@ int main(int argc, char **argv){
      printf("----%X ----/n", ulHashValue);
 
      ulHashValue = HashString(argv[1], 2);
-     printf("----%X ----/n", ulHashValue);  
+     printf("----%X ----/n", ulHashValue);
 
      return 0;
 }
