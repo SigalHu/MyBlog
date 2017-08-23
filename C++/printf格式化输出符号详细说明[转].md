@@ -23,9 +23,9 @@
 * `%X`：无符号十六进制整数（形式为`2F`）
 * `%#X`：无符号十六进制整数（形式为`0x2F`）
 * `%%`：打印一个百分号
-* `%I64d`：用于`INT64`或者`long long`
-* `%I64u`：用于`UINT64`或者`unsigned long long`
-* `%I64x`：用于64位16进制数据
+* `%lld`：用于`INT64`或者`long long`
+* `%llu`：用于`UINT64`或者`unsigned long long`
+* `%llx`：用于64位16进制数据
 
 **说明：**
 
