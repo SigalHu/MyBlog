@@ -35,6 +35,7 @@
 
 * Java
     * [Java的反射机制](Java/Java的反射机制.md)
+    * [Java的内省机制](Java/Java的内省机制.md)
 
 * 数据结构与算法
     * [最长回文子串：Manacher算法[转]](数据结构与算法/最长回文子串：Manacher算法[转].md)
