@@ -90,6 +90,9 @@
     * [使用python-aiohttp爬取网易云音乐](微信公众平台开发/使用python-aiohttp爬取网易云音乐.md)
     * [使用python-aiohttp爬取今日头条](微信公众平台开发/使用python-aiohttp爬取今日头条.md)
 
+* WordPress
+    * [CentOS6系统LNMP环境搭建及WordPress安装](WordPress\CentOS6系统LNMP环境搭建及WordPress安装.md)
+
 * git
     * [.gitignore设置跟踪忽略文件夹中文件](git/.gitignore设置跟踪忽略文件夹中文件.md)
     * [从github下载WDK项目的坑](git/从github下载WDK项目的坑.md)
