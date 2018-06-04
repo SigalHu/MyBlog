@@ -301,5 +301,4 @@ chown -R apache:apache /home/wordpress
 [centos6.5 系统-搭建lamp（php7）环境](http://www.cnblogs.com/zsl123/p/6812735.html)<br>
 [解决wordpress下载插件，安装失败，无法创建目录问题](https://blog.csdn.net/qq_32846595/article/details/54766833)<br>
 [CentOS7 安装 mysql8](https://blog.csdn.net/managementandjava/article/details/80039650)<br>
-[
-Linux(CentOS)下设置nginx开机自动启动和chkconfig管理](https://blog.csdn.net/u013870094/article/details/52463026)
+[Linux(CentOS)下设置nginx开机自动启动和chkconfig管理](https://blog.csdn.net/u013870094/article/details/52463026)
