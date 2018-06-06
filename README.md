@@ -111,6 +111,9 @@
     * [关于vim在插入模式中Backspace键无法删除的问题[转]](IDE/关于vim在插入模式中Backspace键无法删除的问题[转].md)
     * [Atom插件Markdown Preview Enhanced的字体大小修改](IDE/Atom插件Markdown%20Preview%20Enhanced的字体大小修改.md)
 
+* UML
+    * [合并StarUML的多个Project文件](UML/合并StarUML的多个Project文件.md)
+
 * Matlab
     * [VC调用Matlab生成的dll](Matlab/VC调用Matlab生成的dll.md)
     * [VC调用Matlab生成的c](Matlab/VC调用Matlab生成的c.md)
