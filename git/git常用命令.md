@@ -452,7 +452,7 @@ $ git push origin [tag-name]
 $ git fetch --tags
 
 # 获取远程指定tag
-git fetch origin tag [tag-name]
+$ git fetch origin tag [tag-name]
 ```
 
 ### 附图
