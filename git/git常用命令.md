@@ -198,7 +198,7 @@ $ git diff --shortstat "@{0 day ago}"
 $ git log
 
 # 显示指定分支的版本历史
-$  git log [branch]
+$ git log [branch]
 
 # 显示在第一个分支且不在第二个分支的提交信息
 $ git log [first-branch] ^[second-branch]
